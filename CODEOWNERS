@@ -1,0 +1,29 @@
+# Academic Lab Code Owners
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @deltaxmodules/core-team
+
+# Backend code
+/backend/ @deltaxmodules/backend-team @deltaxmodules/core-team
+/backend/main.py @deltaxmodules/backend-team
+/backend/analyze_csv.py @deltaxmodules/backend-team
+/backend/tests/ @deltaxmodules/backend-team
+
+# Frontend code (when added)
+/frontend/ @deltaxmodules/frontend-team @deltaxmodules/core-team
+
+# Infrastructure & deployment
+/.github/ @deltaxmodules/devops @deltaxmodules/core-team
+/docker/ @deltaxmodules/devops
+STAGING_RUNBOOK.md @deltaxmodules/devops
+DEPLOYMENT.md @deltaxmodules/devops
+
+# Documentation
+/docs/ @deltaxmodules/core-team
+README.md @deltaxmodules/core-team
+CONTRIBUTING.md @deltaxmodules/core-team
+ARCHITECTURE.md @deltaxmodules/core-team
+
+# CI/CD
+.github/workflows/ @deltaxmodules/devops @deltaxmodules/core-team
