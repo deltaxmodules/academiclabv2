@@ -58,10 +58,7 @@ def _step_router(state: StudentState) -> str:
     if last_action == "show_problems":
         if not state.get("current_problem"):
             return "await_user"
-        if wants_examples:
-            state["last_action"] = "show_examples"
-            return "show_examples"
-        return "explain_problem"
+        return "show_examples" if wants_examples else "explain_problem"
 
     if last_action == "explain":
         return "show_examples" if wants_examples else "await_user"

@@ -10,7 +10,7 @@ import os
 from langchain_openai import ChatOpenAI
 
 from analyze_csv import QuickAnalyzer
-from data_access import lookup_problem
+from data_access import lookup_checklist_item, lookup_problem
 from state import StudentState
 
 
@@ -114,6 +114,13 @@ def explain_problem_node(state: StudentState) -> StudentState:
         return state
 
     checklist_ref = problem_detail.get("checklist_ref", "CHK-001")
+    checklist_item = lookup_checklist_item(checklist_ref)
+    checklist_text = ""
+    if checklist_item:
+        checklist_text = (
+            f"{checklist_item.get('chk_id')}: {checklist_item.get('task')} - "
+            f"{checklist_item.get('description')}"
+        )
 
     system_prompt = """
 You are a DATA SCIENCE INSTRUCTOR focused on education.
@@ -125,6 +132,12 @@ RULES:
 ✅ Use simple analogies
 ✅ Ask reflective questions
 ✅ Cite the related checklist item
+
+OUTPUT FORMAT:
+1) WHAT is the issue
+2) WHY it matters
+3) HOW to address it (suggested actions, 2-3 steps)
+4) Checklist item reference
 """
 
     user_prompt = f"""
@@ -139,6 +152,7 @@ Framework:
 {json.dumps(problem_detail, ensure_ascii=False, indent=2)}
 
 Checklist: {checklist_ref}
+Checklist detail: {checklist_text if checklist_text else 'N/A'}
 
 Explain in an educational way. The student will solve it on their own.
 """
@@ -153,8 +167,32 @@ Explain in an educational way. The student will solve it on their own.
 
     explanation = response.content
 
-    state["conversation"].append({"role": "assistant", "content": explanation, "timestamp": _now()})
-    state["last_response"] = explanation
+    # Build examples inline for efficiency (single response)
+    examples_block = ""
+    solutions = problem_detail.get("branches", [{}])[0].get("solutions", [])
+    if solutions:
+        solution = solutions[0]
+        examples_block += "\n\n---\n\n"
+        examples_block += f"🔧 CODE EXAMPLE for {problem_id}:\n\n"
+        examples_block += "⚠️ IMPORTANT: This is EDUCATIONAL code.\n"
+        examples_block += "   Copy it to your environment and run it there.\n"
+        examples_block += "   I will not execute anything here.\n\n"
+        examples_block += f"**Method: {solution.get('method', 'Method 1')}**\n"
+        examples_block += f"Use case: {solution.get('use_case', 'When to use')}\n\n"
+        examples_block += f"```python\n{solution.get('code', '# Code not available')}\n```\n\n"
+        examples_block += "**Pros:**\n"
+        for pro in solution.get("pros", []):
+            examples_block += f"  ✅ {pro}\n"
+        examples_block += "\n**Cons:**\n"
+        for con in solution.get("cons", []):
+            examples_block += f"  ❌ {con}\n"
+        examples_block += "\n---\n\n"
+        examples_block += "📝 Next step: run the code locally and come back with the result.\n"
+
+    combined = explanation + examples_block
+
+    state["conversation"].append({"role": "assistant", "content": combined, "timestamp": _now()})
+    state["last_response"] = combined
     state["last_action"] = "explain"
     state["attempts_current_problem"] += 1
     state["timestamp_last_update"] = _now()
