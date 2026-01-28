@@ -1,0 +1,238 @@
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: center;
+}
+
+.brand h1 {
+  font-size: clamp(2.4rem, 3vw, 3.2rem);
+  margin: 12px 0;
+}
+
+.brand p {
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 420px;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.hero-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 50px var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.hero-card ul {
+  padding-left: 18px;
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.upload-card,
+.chat-card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 15px 40px var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.upload-card h3,
+.chat-card h3 {
+  margin-top: 0;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-button input {
+  display: none;
+}
+
+.upload-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(208, 122, 45, 0.35);
+}
+
+.status {
+  margin-left: 12px;
+  color: var(--muted);
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f0efe9;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.dataset-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chat-body {
+  margin-top: 20px;
+  padding: 18px;
+  background: #f8f6f2;
+  border-radius: 18px;
+  min-height: 320px;
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bubble {
+  padding: 14px 16px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(15, 15, 15, 0.08);
+  background: white;
+  max-width: 90%;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--accent-soft);
+}
+
+.bubble-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.action-tag {
+  background: #f0ebe3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  color: var(--accent-dark);
+}
+
+.chat-input {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+}
+
+.chat-input input {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  background: #fffdfa;
+}
+
+.chat-input button {
+  border-radius: 999px;
+  border: none;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chat-input button:disabled,
+.chat-input input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reupload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #efe7dc;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 600;
+  border: 1px solid rgba(208, 122, 45, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reupload-button input {
+  display: none;
+}
+
+.reupload-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(208, 122, 45, 0.25);
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-input {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-input button {
+    width: 100%;
+  }
+
+  .reupload-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,34 @@
+:root {
+  --bg: #f6f3ee;
+  --ink: #1d1b16;
+  --muted: #5d5851;
+  --accent: #d07a2d;
+  --accent-dark: #9e551b;
+  --accent-soft: #f1d2b1;
+  --card: #ffffff;
+  --shadow: rgba(16, 16, 16, 0.12);
+  --border: rgba(20, 20, 20, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top left, #fff6ea, #f6f3ee 55%, #f2efe8);
+  min-height: 100vh;
+}
+
+pre {
+  white-space: pre-wrap;
+  font-family: "Source Serif 4", serif;
+  margin: 0;
+}
+
+button,
+input {
+  font-family: inherit;
+}
