@@ -9,7 +9,7 @@ import os
 
 from langchain_openai import ChatOpenAI
 
-from analyze_csv import QuickAnalyzer
+from analyze_csv import QuickAnalyzer, _missing_action_hint
 from data_access import lookup_checklist_item, lookup_problem
 from state import StudentState
 
@@ -31,6 +31,14 @@ _EXECUTION_CLAIM_PATTERNS = [
     r"\brunning on the server\b",
 ]
 
+_LANG_CODE_MAP = {
+    "pt": "Portuguese",
+    "fr": "French",
+    "es": "Spanish",
+    "it": "Italian",
+    "de": "German",
+}
+
 
 def _now() -> datetime:
     return datetime.now()
@@ -46,6 +54,28 @@ def _get_llm() -> ChatOpenAI:
     )
 
 
+def translate_message(text: str, target_lang: str) -> str:
+    """Translate assistant text while preserving code blocks."""
+    if target_lang not in _LANG_CODE_MAP:
+        return text
+    llm = _get_llm()
+    system_prompt = (
+        "You are a translation engine. Translate the message to the target language. "
+        "Preserve code blocks, inline code, and identifiers exactly. Do not translate code."
+    )
+    user_prompt = f"Target language: {_LANG_CODE_MAP[target_lang]}\n\nMessage:\n{text}"
+    try:
+        response = llm.invoke(
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ]
+        )
+        return response.content
+    except Exception:
+        return text
+
+
 def analyze_csv_node(state: StudentState) -> StudentState:
     """Analyze CSV stats and detect problems P01-P35."""
     problems = QuickAnalyzer.analyze_stats(state["csv_stats"])
@@ -58,10 +88,35 @@ def analyze_csv_node(state: StudentState) -> StudentState:
 
     state["problems_detected"] = problems_sorted
     state["current_problem"] = problems_sorted[0]["problem_id"] if problems_sorted else None
+    state["checklist_report"] = _build_chk001_report(state["csv_stats"])
     state["last_action"] = "analyze"
     state["timestamp_last_update"] = _now()
 
     return state
+
+
+def _build_chk001_report(stats: Dict) -> Dict:
+    """In-memory CHK-001 report based on missing values."""
+    report = {"CHK-001": {"criteria": [], "passed": True}}
+    rows = stats.get("rows", 0) or 0
+    missing = stats.get("missing_percentage", {}) or {}
+    missing_types = stats.get("missing_types", {}) or {}
+
+    for col, rate in missing.items():
+        if rate <= 0:
+            continue
+        missing_type = missing_types.get(col, "MCAR")
+        decision = _missing_action_hint(rate, rows, missing_type)
+        report["CHK-001"]["criteria"].append(
+            {
+                "column": col,
+                "missing_pct": rate,
+                "missing_type": missing_type,
+                "recommended_action": decision,
+            }
+        )
+
+    return report
 
 
 def show_problems_node(state: StudentState) -> StudentState:
@@ -140,6 +195,22 @@ OUTPUT FORMAT:
 4) Checklist item reference
 """
 
+    # Include P01-specific context
+    p01_context = ""
+    if problem_id == "P01":
+        missing_types = state.get("csv_stats", {}).get("missing_types", {})
+        missing_pct = state.get("csv_stats", {}).get("missing_percentage", {})
+        col = None
+        for item in state.get("problems_detected", []):
+            if item.get("problem_id") == "P01":
+                col = item.get("column")
+                break
+        if col:
+            mtype = missing_types.get(col, "MCAR")
+            mpct = missing_pct.get(col, 0)
+            hint = _missing_action_hint(mpct, state.get("csv_stats", {}).get("rows", 0), mtype)
+            p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
+
     user_prompt = f"""
 The student wants to learn about {problem_id}: {problem_detail.get('name')}
 
@@ -153,6 +224,7 @@ Framework:
 
 Checklist: {checklist_ref}
 Checklist detail: {checklist_text if checklist_text else 'N/A'}
+{p01_context}
 
 Explain in an educational way. The student will solve it on their own.
 """
@@ -170,8 +242,8 @@ Explain in an educational way. The student will solve it on their own.
     # Build examples inline for efficiency (single response)
     examples_block = ""
     solutions = problem_detail.get("branches", [{}])[0].get("solutions", [])
-    if solutions:
-        solution = solutions[0]
+    solution = _select_solution(problem_id, solutions, state)
+    if solution:
         examples_block += "\n\n---\n\n"
         examples_block += f"🔧 CODE EXAMPLE for {problem_id}:\n\n"
         examples_block += "⚠️ IMPORTANT: This is EDUCATIONAL code.\n"
@@ -198,6 +270,84 @@ Explain in an educational way. The student will solve it on their own.
     state["timestamp_last_update"] = _now()
 
     return state
+
+
+def _select_solution(problem_id: str, solutions: List[Dict], state: StudentState) -> Dict | None:
+    """Pick the most appropriate solution (rules first, LLM fallback)."""
+    if not solutions:
+        return None
+
+    # Rule-based keywords for all problems (fallback to LLM when no match)
+    keyword_map = {
+        "P01": ["missing", "impute", "median", "mean", "drop", "remove", "flag"],
+        "P02": ["duplicate", "drop_duplicates", "deduplicate", "unique"],
+        "P03": ["outlier", "iqr", "z-score", "cap", "clip", "winsor"],
+        "P04": ["dtype", "cast", "convert", "parse", "to_datetime"],
+        "P05": ["category", "normalize", "standardize", "strip", "lower"],
+        "P06": ["invalid", "rule", "range", "constraint", "business"],
+        "P07": ["scale", "standard", "minmax", "normalize", "robust"],
+        "P08": ["encode", "one-hot", "ordinal", "target encoding"],
+        "P09": ["imbalance", "resample", "smote", "class_weight"],
+        "P10": ["bias", "fairness", "reweigh", "balance"],
+        "P11": ["irrelevant", "drop", "feature selection"],
+        "P12": ["id", "identifier", "remove id"],
+        "P13": ["multicollinearity", "correlation", "vif", "drop"],
+        "P14": ["leakage", "remove", "future", "target"],
+        "P15": ["join", "merge", "key", "integrity"],
+        "P16": ["time series", "order", "sort", "lag"],
+        "P17": ["drift", "stability", "monitor"],
+        "P18": ["noise", "smoothing", "filter"],
+        "P19": ["text", "clean", "tokenize", "tf-idf", "embedding"],
+        "P20": ["image", "resize", "normalize", "augment"],
+        "P21": ["audio", "mfcc", "spectrogram"],
+        "P22": ["referential", "foreign key", "integrity"],
+        "P23": ["frequency", "resample", "aggregate"],
+        "P24": ["gap", "interpolate", "missing period"],
+        "P25": ["rare", "other", "group"],
+        "P26": ["constant", "variance", "drop"],
+        "P27": ["noisy target", "clean", "filter"],
+        "P28": ["granularity", "aggregate", "unit"],
+        "P29": ["indirect leakage", "proxy", "remove"],
+        "P30": ["split", "leakage", "time", "stratify"],
+        "P31": ["high dimensional", "feature selection", "pca"],
+        "P32": ["interaction", "feature crossing", "polynomial"],
+        "P33": ["inf", "nan", "special values", "replace"],
+        "P34": ["precision", "decimal", "round"],
+        "P35": ["cross-validation", "cv", "timeseries split", "group kfold"],
+    }
+
+    keywords = keyword_map.get(problem_id)
+    if keywords:
+        matched = _match_solution(solutions, keywords)
+        if matched:
+            return matched
+
+    # LLM fallback: ask to choose best solution by use_case/method
+    llm = _get_llm()
+    prompt = f"""
+Select the best solution for {problem_id} based on the dataset context.
+CSV stats: {json.dumps(state.get('csv_stats', {}), indent=2)}
+Return ONLY the index (0-based) of the best solution.
+Solutions: {json.dumps(solutions, indent=2)}
+"""
+    try:
+        response = llm.invoke([{"role": "user", "content": prompt}])
+        index = int(re.findall(r"\\d+", response.content)[0])
+        if 0 <= index < len(solutions):
+            return solutions[index]
+    except Exception:
+        pass
+
+    return solutions[0]
+
+
+def _match_solution(solutions: List[Dict], keywords: List[str]) -> Dict | None:
+    """Find a solution whose method/use_case mentions any keyword."""
+    for solution in solutions:
+        hay = f"{solution.get('method','')} {solution.get('use_case','')} {solution.get('description','')}".lower()
+        if any(k in hay for k in keywords):
+            return solution
+    return solutions[0] if solutions else None
 
 
 def show_examples_node(state: StudentState) -> StudentState:
@@ -244,6 +394,7 @@ def ask_reflection_node(state: StudentState) -> StudentState:
     questions = {
         "P01": "Why is it important to handle missing values before training a model?",
         "P02": "How would you distinguish exact duplicates from repeated real events?",
+        "P03": "Are these outliers valid business cases or data errors? Give a concrete example.",
         "P09": "Why is accuracy misleading with imbalanced classes?",
         "P14": "Could you use 'lucro_realizado' to predict sales in production?",
     }

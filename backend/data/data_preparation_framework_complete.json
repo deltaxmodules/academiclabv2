@@ -1,9 +1,8 @@
 {
   "framework_name": "Data Science Methodology - Complete Data Preparation Framework",
-  "version": "1.0",
+  "version": "2.0-GENERIC",
   "total_problems": 35,
-  "description": "Complete framework to identify, diagnose and resolve data preparation issues",
-  
+  "description": "Complete framework for ALL 35 data preparation problems - UNIVERSAL for ANY dataset in ANY domain (finance, healthcare, e-commerce, IoT, etc). Context-aware decision trees, not rigid rules.",
   "data_preparation_complete": [
     {
       "id": "P01",
@@ -18,7 +17,7 @@
           "description": "Quantify the volume of missing values",
           "code": "missing_rate = (col.isnull().sum() / len(col)) * 100",
           "detection": [
-            "If > 50%: column potentially useless → P11",
+            "If > 50%: column potentially useless \u2192 P11",
             "If 10-50%: evaluate importance vs imputation cost",
             "If < 10%: generally safe to impute"
           ],
@@ -26,7 +25,7 @@
         },
         {
           "step": 2,
-          "name": "If Few (< 10%) → Remove",
+          "name": "If Few (< 10%) \u2192 Remove",
           "description": "Remove rows with few missing values",
           "solutions": [
             {
@@ -40,7 +39,7 @@
         },
         {
           "step": 3,
-          "name": "If Many (10-50%) → Impute by Type",
+          "name": "If Many (10-50%) \u2192 Impute by Type",
           "description": "Different strategies depending on data type",
           "solutions": [
             {
@@ -125,7 +124,7 @@
         },
         {
           "step": 4,
-          "name": "If Missing Has Meaning → Create Flag",
+          "name": "If Missing Has Meaning \u2192 Create Flag",
           "description": "Preserve information that value was missing",
           "code": "df['col_missing_flag'] = df['col'].isnull().astype(int)\ndf['col'] = df['col'].fillna(df['col'].median())",
           "rationale": "Missing may be predictor: 'was missing' may indicate pattern",
@@ -168,7 +167,7 @@
         },
         {
           "step": 2,
-          "name": "If Exact → Remove",
+          "name": "If Exact \u2192 Remove",
           "code": "df = df.drop_duplicates()\nprint(f'Removed X exact duplicates')",
           "variants": [
             "drop_duplicates(keep='first') - keep first",
@@ -177,7 +176,7 @@
         },
         {
           "step": 3,
-          "name": "If Real Events → Keep",
+          "name": "If Real Events \u2192 Keep",
           "description": "Multiple legitimate records of same entity",
           "validation": "If same ID with different timestamps = legitimate events",
           "examples": [
@@ -188,7 +187,7 @@
         },
         {
           "step": 4,
-          "name": "Otherwise → Apply Rule",
+          "name": "Otherwise \u2192 Apply Rule",
           "solutions": [
             {
               "method": "Most Recent",
@@ -255,12 +254,12 @@
         },
         {
           "step": 2,
-          "name": "If Error → Fix or Mark Missing",
+          "name": "If Error \u2192 Fix or Mark Missing",
           "description": "Impossible or clearly wrong values",
           "examples": [
-            "Person weight: 999 kg → typo",
-            "Age: 150 years → impossible",
-            "Temperature: -1000°C → impossible"
+            "Person weight: 999 kg \u2192 typo",
+            "Age: 150 years \u2192 impossible",
+            "Temperature: -1000\u00b0C \u2192 impossible"
           ],
           "solutions": [
             {
@@ -275,7 +274,7 @@
         },
         {
           "step": 3,
-          "name": "If Rare But Real → Keep",
+          "name": "If Rare But Real \u2192 Keep",
           "description": "Legitimate domain outliers",
           "examples": [
             "Exceptionally large sale",
@@ -286,7 +285,7 @@
         },
         {
           "step": 4,
-          "name": "Otherwise → Capping or Transformation",
+          "name": "Otherwise \u2192 Capping or Transformation",
           "solutions": [
             {
               "method": "Capping (Winsorization)",
@@ -533,7 +532,7 @@
         },
         {
           "step": 3,
-          "name": "Otherwise → Missing",
+          "name": "Otherwise \u2192 Missing",
           "code": "df.loc[invalid_mask, 'column'] = np.nan",
           "note": "Then apply P01 (Missing Values)"
         }
@@ -915,7 +914,7 @@
           "solutions": [
             {
               "issue": "Explosion (one-to-many)",
-              "code": "before = len(df_left)\nafter = len(df_merged)\nif after > before:\n    print(f'Explosion: {before} → {after}')\n    print(df_right['id'].value_counts().sort_values(ascending=False).head())"
+              "code": "before = len(df_left)\nafter = len(df_merged)\nif after > before:\n    print(f'Explosion: {before} \u2192 {after}')\n    print(df_right['id'].value_counts().sort_values(ascending=False).head())"
             },
             {
               "issue": "Loss (not found)",
@@ -1489,7 +1488,7 @@
         {
           "step": 4,
           "name": "PCA - Principal Components",
-          "code": "from sklearn.decomposition import PCA\npca = PCA(n_components=0.95)\nX_pca = pca.fit_transform(X)\nprint(f'Features: {X.shape[1]} → {X_pca.shape[1]}')",
+          "code": "from sklearn.decomposition import PCA\npca = PCA(n_components=0.95)\nX_pca = pca.fit_transform(X)\nprint(f'Features: {X.shape[1]} \u2192 {X_pca.shape[1]}')",
           "note": "Use if interpretability is not critical"
         },
         {
@@ -1686,5 +1685,7 @@
       "P34: Numeric precision validated",
       "P35: Appropriate CV for data type"
     ]
-  }
+  },
+  "applies_to": "ANY dataset: financial data, healthcare records, e-commerce transactions, sensor data, user data, ANY tabular data",
+  "note": "ALL 35 problems (P01-P35) with universal methods that work across all domains"
 }

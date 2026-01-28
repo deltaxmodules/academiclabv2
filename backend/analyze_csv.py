@@ -245,6 +245,7 @@ class QuickAnalyzer:
 
         rows = stats.get("rows", 0) or 0
         missing = stats.get("missing_percentage", {}) or {}
+        missing_types = stats.get("missing_types", {}) or {}
         duplicates = stats.get("duplicates", 0) or 0
         outliers = stats.get("outliers", {}) or {}
         high_corr = stats.get("high_correlations", []) or []
@@ -255,12 +256,16 @@ class QuickAnalyzer:
             if rate <= 0:
                 continue
             severity = "CRITICAL" if rate > 50 else "HIGH" if rate > 10 else "MEDIUM"
+            missing_type = missing_types.get(col, "MCAR")
+            action_hint = _missing_action_hint(rate, rows, missing_type)
             problems.append({
                 "problem_id": "P01",
                 "problem_name": "Missing Values",
                 "column": col,
                 "severity": severity,
                 "rate": rate,
+                "missing_type": missing_type,
+                "suggested_action": action_hint,
                 "message": f'Column "{col}" has {rate:.1f}% missing values',
                 "checklist_ref": "CHK-001"
             })
@@ -323,6 +328,27 @@ class QuickAnalyzer:
                     })
 
         return problems
+
+
+def _missing_action_hint(rate: float, rows: int, missing_type: str) -> str:
+    """Heuristic decision tree for missing values (CHK-001)."""
+    if rate > 50:
+        return "Remove column (too much missingness)."
+    if 20 <= rate <= 50:
+        if missing_type == "MNAR":
+            return "Impute with domain context; document rationale."
+        if missing_type == "MAR":
+            return "Impute using related features; document assumptions."
+        return "Impute or remove depending on dataset size."
+    if 10 <= rate < 20:
+        if rows < 500:
+            return "Impute (small dataset)."
+        return "Remove or impute depending on downstream impact."
+    if rate < 10:
+        if rows < 500:
+            return "Impute (small dataset)."
+        return "Safe to drop rows or impute."
+    return "Impute and document."
 
 
 # ============================================================================

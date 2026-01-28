@@ -79,14 +79,19 @@ function App() {
           csv_version: data.csv_version || 1,
         });
         setMessages((prev) => {
-          const next = sessionId ? prev : [];
+          const next = sessionId ? [...prev] : [];
+          const action = sessionId ? "reupload" : "analyze";
+          const last = next[next.length - 1];
+          if (last && last.action === action && last.content === data.message) {
+            return next;
+          }
           next.push({
             id: `${Date.now()}-upload`,
             role: "assistant",
             content: data.message,
-            action: sessionId ? "reupload" : "analyze",
+            action,
           });
-          return [...next];
+          return next;
         });
         if (!sessionId) {
           connectWebSocket(data.session_id);
@@ -244,8 +249,9 @@ function App() {
             </p>
             <pre className="code-block">{`import pandas as pd
 
-df = pd.read_csv("dataset_v${csvInfo?.csv_version || "?"}.csv")
-# ... apply fixes ...
+raw_df = pd.read_csv("dataset_v${csvInfo?.csv_version || "?"}.csv")
+df = raw_df.copy()
+# ... apply fixes on df ...
 df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
 `}</pre>
             <div className="modal-actions">

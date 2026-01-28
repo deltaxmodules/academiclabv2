@@ -33,3 +33,13 @@ def lookup_problem(problem_id: str) -> Optional[Dict]:
         if problem.get("id") == problem_id:
             return problem
     return None
+
+
+def lookup_checklist_item(checklist_id: str) -> Optional[Dict]:
+    """Find a checklist item by id in the checklist."""
+    checklist = load_checklist()
+    for category in checklist.get("categories", []):
+        for item in category.get("items", []):
+            if item.get("chk_id") == checklist_id:
+                return item
+    return None

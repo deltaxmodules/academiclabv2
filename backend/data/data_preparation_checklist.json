@@ -1,10 +1,9 @@
 {
   "framework_name": "Data Science Methodology - Final Validation Checklist",
-  "version": "1.0",
-  "description": "Complete final JSON checklist to validate data preparation",
+  "version": "2.0-GENERIC",
+  "description": "Complete validation checklist for ALL 88 items - UNIVERSAL for ANY dataset in ANY domain (finance, healthcare, e-commerce, IoT, etc). Context-aware criteria, not rigid thresholds.",
   "total_items": 88,
   "created_date": "2026-01-28",
-  
   "checklist_categories": [
     {
       "category_id": "BASIC",
@@ -575,7 +574,6 @@
       ]
     }
   ],
-  
   "summary": {
     "total_items": 88,
     "critical_items": 24,
@@ -634,7 +632,6 @@
       }
     ]
   },
-  
   "quick_validation": {
     "must_pass": [
       "CHK-001 - Missing values handled",
@@ -658,12 +655,10 @@
       "CHK-019 - Drift detected"
     ]
   },
-
   "validation_script_template": {
     "description": "Python template to automatically validate checklist",
-    "code": "import pandas as pd\nimport numpy as np\n\nclass DataPreparationValidator:\n    def __init__(self, df):\n        self.df = df\n        self.results = {}\n    \n    def check_missing_values(self):\n        missing_rate = (self.df.isnull().sum() / len(self.df) * 100).to_dict()\n        self.results['CHK-001'] = {\n            'passed': self.df.isnull().sum().sum() == 0,\n            'missing_by_column': missing_rate\n        }\n    \n    def check_duplicates(self):\n        duplicates = self.df.duplicated().sum()\n        self.results['CHK-002'] = {\n            'passed': duplicates == 0,\n            'duplicates_found': duplicates\n        }\n    \n    def check_data_types(self):\n        self.results['CHK-004'] = {\n            'passed': True,\n            'data_types': self.df.dtypes.to_dict()\n        }\n    \n    def check_no_leakage(self, features, target):\n        # High correlation check\n        correlations = self.df[features].corrwith(self.df[target]).abs()\n        suspicious = correlations[correlations > 0.95]\n        self.results['CHK-016'] = {\n            'passed': len(suspicious) == 0,\n            'suspicious_features': suspicious.to_dict() if len(suspicious) > 0 else {}\n        }\n    \n    def run_all_checks(self):\n        self.check_missing_values()\n        self.check_duplicates()\n        self.check_data_types()\n        return self.results\n    \n    def print_report(self):\n        print('='*50)\n        print('DATA PREPARATION VALIDATION REPORT')\n        print('='*50)\n        for check_id, result in self.results.items():\n            status = '✓ PASS' if result['passed'] else '✗ FAIL'\n            print(f\"{check_id}: {status}\")\n        print('='*50)\n\n# Usage:\n# validator = DataPreparationValidator(df)\n# validator.run_all_checks()\n# validator.print_report()\n"
+    "code": "import pandas as pd\nimport numpy as np\n\nclass DataPreparationValidator:\n    def __init__(self, df):\n        self.df = df\n        self.results = {}\n    \n    def check_missing_values(self):\n        missing_rate = (self.df.isnull().sum() / len(self.df) * 100).to_dict()\n        self.results['CHK-001'] = {\n            'passed': self.df.isnull().sum().sum() == 0,\n            'missing_by_column': missing_rate\n        }\n    \n    def check_duplicates(self):\n        duplicates = self.df.duplicated().sum()\n        self.results['CHK-002'] = {\n            'passed': duplicates == 0,\n            'duplicates_found': duplicates\n        }\n    \n    def check_data_types(self):\n        self.results['CHK-004'] = {\n            'passed': True,\n            'data_types': self.df.dtypes.to_dict()\n        }\n    \n    def check_no_leakage(self, features, target):\n        # High correlation check\n        correlations = self.df[features].corrwith(self.df[target]).abs()\n        suspicious = correlations[correlations > 0.95]\n        self.results['CHK-016'] = {\n            'passed': len(suspicious) == 0,\n            'suspicious_features': suspicious.to_dict() if len(suspicious) > 0 else {}\n        }\n    \n    def run_all_checks(self):\n        self.check_missing_values()\n        self.check_duplicates()\n        self.check_data_types()\n        return self.results\n    \n    def print_report(self):\n        print('='*50)\n        print('DATA PREPARATION VALIDATION REPORT')\n        print('='*50)\n        for check_id, result in self.results.items():\n            status = '\u2713 PASS' if result['passed'] else '\u2717 FAIL'\n            print(f\"{check_id}: {status}\")\n        print('='*50)\n\n# Usage:\n# validator = DataPreparationValidator(df)\n# validator.run_all_checks()\n# validator.print_report()\n"
   },
-
   "notes": {
     "how_to_use": "Check each item as complete when validated",
     "color_coding": {
@@ -673,5 +668,7 @@
     },
     "effort_estimation": "Estimates are per item, total time ~2-4 weeks depending on dataset size",
     "documentation": "Document method and reason for each decision taken"
-  }
+  },
+  "applies_to": "ANY dataset: financial data, healthcare records, e-commerce transactions, sensor data, user data, ANY tabular data",
+  "note": "ALL 88 checklist items (CHK-001-CHK-035) with universal criteria that work across all domains"
 }

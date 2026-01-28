@@ -11,6 +11,7 @@ from typing import Dict
 
 import pandas as pd
 import numpy as np
+from langdetect import detect
 from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
@@ -18,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from graph import AGENT_GRAPH
 from state import StudentState, create_initial_state
+from nodes import translate_message
 
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
@@ -89,6 +91,30 @@ def _compute_stats(df: pd.DataFrame) -> Dict:
         if len(value_counts) <= 10:
             target_dist = value_counts.to_dict()
 
+    # Missing type heuristic (MCAR/MAR/MNAR)
+    missing_types = {}
+    if rows:
+        for col, rate in missing_pct.items():
+            if rate <= 0:
+                continue
+            if rate > 50:
+                missing_types[col] = "MNAR"
+                continue
+            # Heuristic: if missing rate varies by categorical target -> MAR
+            if (
+                target_col in df.columns
+                and col != target_col
+                and not pd.api.types.is_numeric_dtype(df[target_col])
+            ):
+                try:
+                    groups = df.groupby(target_col)[col].apply(lambda s: s.isna().mean())
+                    if not groups.empty and (groups.max() - groups.min()) > 0.1:
+                        missing_types[col] = "MAR"
+                        continue
+                except Exception:
+                    pass
+            missing_types[col] = "MCAR"
+
     stats = {
         "rows": rows,
         "columns": len(df.columns),
@@ -96,6 +122,7 @@ def _compute_stats(df: pd.DataFrame) -> Dict:
         "dtypes": dtypes,
         "memory_mb": round(df.memory_usage(deep=True).sum() / 1024**2, 2),
         "missing_percentage": missing_pct,
+        "missing_types": missing_types,
         "duplicates": duplicates,
         "outliers": outliers,
         "high_correlations": high_corr,
@@ -218,6 +245,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Invalid CSV: {exc}") from exc
 
     old_state = STUDENT_SESSIONS[session_id]
+    before_state = old_state.copy()
     stats = _compute_stats(df)
     new_version = old_state.get("csv_version", 1) + 1
 
@@ -226,24 +254,44 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     old_state["csv_version"] = new_version
     old_state["problems_detected"] = []
     old_state["current_problem"] = None
+    old_state["problems_solved"] = []
+    old_state["checklist_status"] = {}
+    old_state["attempts_current_problem"] = 0
+    old_state["last_validation_result"] = None
+    old_state["conversation"] = []
+    old_state["last_response"] = ""
     old_state["last_action"] = "upload"
+    old_state["messages_count"] = 0
+    old_state["guardrail_failed"] = False
+    old_state["guardrail_reason"] = None
+    old_state["guardrail_history"] = []
+    old_state["reupload_required"] = False
     old_state["timestamp_last_update"] = datetime.now()
 
-    before_state = old_state.copy()
     state = AGENT_GRAPH.invoke(old_state)
     STUDENT_SESSIONS[session_id] = state
 
     diff = _compare_problem_sets(before_state, state)
     resolved_list = sorted(diff["resolved"])
     remaining_list = sorted(diff["remaining"])
-    summary = ""
+    cols = stats.get("column_names", []) or []
+    cabin_present = "Cabin" in cols
+    cabin_missing = stats.get("missing_percentage", {}).get("Cabin")
+    summary = f"📥 Reupload received: {file.filename}\n"
+    summary += f"🔎 Columns: {len(cols)} | Cabin present: {'yes' if cabin_present else 'no'}"
+    if cabin_present and cabin_missing is not None:
+        summary += f" (missing {cabin_missing:.1f}%)"
+    summary += "\n"
     if resolved_list:
         summary += f"✅ Resolved issue(s): {', '.join(resolved_list)}\n"
     if remaining_list:
         summary += f"⚠️ Still present: {', '.join(remaining_list)}\n"
-    if not summary:
-        summary = "ℹ️ No changes detected in the issues."
-    state["last_response"] = summary.strip()
+    if summary.strip() == f"📥 Reupload received: {file.filename}":
+        summary = f"📥 Reupload received: {file.filename}\nℹ️ No changes detected in the issues."
+    if state.get("last_response"):
+        state["last_response"] = summary.strip() + "\n\n" + state["last_response"]
+    else:
+        state["last_response"] = summary.strip()
 
     response = {
         "success": True,
@@ -302,10 +350,28 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             state = AGENT_GRAPH.invoke(state)
             STUDENT_SESSIONS[session_id] = state
 
+            # Auto-detect user language and translate assistant response
+            target_lang = None
+            last_user = next(
+                (m for m in reversed(state["conversation"]) if m.get("role") == "user"),
+                None,
+            )
+            if last_user and last_user.get("content"):
+                try:
+                    lang = detect(last_user["content"])
+                    if lang in {"pt", "fr", "es", "it", "de"}:
+                        target_lang = lang
+                except Exception:
+                    target_lang = None
+
+            content = state["last_response"]
+            if target_lang:
+                content = translate_message(content, target_lang)
+
             await websocket.send_json(
                 {
                     "type": "response",
-                    "content": state["last_response"],
+                    "content": content,
                     "action": state["last_action"],
                     "problems_solved": state["problems_solved"],
                     "understanding_level": state["understanding_level"],
@@ -333,6 +399,7 @@ async def get_session(session_id: str):
         "problems_solved": state["problems_solved"],
         "understanding_level": state["understanding_level"],
         "messages_count": state["messages_count"],
+        "checklist_report": state.get("checklist_report", {}),
         "duration_minutes": round(duration, 2),
     }
 
