@@ -25,7 +25,7 @@ class DataPreparationDiagnostics:
     
     def diagnose(self) -> List[Dict]:
         """Run a full diagnostic pass."""
-        print("🔍 Executando diagnóstico completo...\n")
+        print("🔍 Running full diagnostics...\n")
         
         self.check_missing_values()      # P01
         self.check_duplicates()          # P02
@@ -43,14 +43,14 @@ class DataPreparationDiagnostics:
         """P01: Detect missing values."""
         missing_rate = (self.df.isnull().sum() / len(self.df) * 100)
         for col, rate in missing_rate[missing_rate > 0].items():
-            severity = "CRÍTICO" if rate > 50 else "ALTO" if rate > 10 else "MÉDIO"
+            severity = "CRITICAL" if rate > 50 else "HIGH" if rate > 10 else "MEDIUM"
             self.problems_found.append({
                 'problem_id': 'P01',
-                'problem_name': 'Valores em Falta',
+                'problem_name': 'Missing Values',
                 'column': col,
                 'severity': severity,
                 'rate': rate,
-                'message': f'Coluna "{col}" tem {rate:.1f}% de valores em falta',
+                'message': f'Column "{col}" has {rate:.1f}% missing values',
                 'checklist_ref': 'CHK-001'
             })
     
@@ -61,11 +61,11 @@ class DataPreparationDiagnostics:
             pct = (duplicates / len(self.df)) * 100
             self.problems_found.append({
                 'problem_id': 'P02',
-                'problem_name': 'Dados Duplicados',
-                'severity': 'ALTO',
+                'problem_name': 'Duplicate Data',
+                'severity': 'HIGH',
                 'count': duplicates,
                 'percentage': pct,
-                'message': f'Dataset tem {duplicates} linhas duplicadas ({pct:.1f}%)',
+                'message': f'Dataset has {duplicates} duplicate rows ({pct:.1f}%)',
                 'checklist_ref': 'CHK-002'
             })
     
@@ -77,13 +77,13 @@ class DataPreparationDiagnostics:
             Q3 = self.df[col].quantile(0.75)
             IQR = Q3 - Q1
             
-            if IQR == 0:  # Coluna constante
+            if IQR == 0:  # Constant column
                 continue
             
             outliers = ((self.df[col] < Q1 - 1.5*IQR) | (self.df[col] > Q3 + 1.5*IQR)).sum()
             if outliers > 0:
                 pct = (outliers / len(self.df)) * 100
-                severity = 'MÉDIO' if pct < 5 else 'ALTO' if pct < 10 else 'CRÍTICO'
+                severity = 'MEDIUM' if pct < 5 else 'HIGH' if pct < 10 else 'CRITICAL'
                 self.problems_found.append({
                     'problem_id': 'P03',
                     'problem_name': 'Outliers',
@@ -91,7 +91,7 @@ class DataPreparationDiagnostics:
                     'severity': severity,
                     'count': outliers,
                     'percentage': pct,
-                    'message': f'Coluna "{col}" tem {outliers} outliers ({pct:.1f}%)',
+                    'message': f'Column "{col}" has {outliers} outliers ({pct:.1f}%)',
                     'checklist_ref': 'CHK-003'
                 })
     
@@ -99,7 +99,7 @@ class DataPreparationDiagnostics:
         """P04: Validate data types."""
         issues = []
         for col in self.df.columns:
-            # Números armazenados como string?
+            # Numbers stored as strings?
             if self.df[col].dtype == 'object':
                 try:
                     converted = pd.to_numeric(self.df[col], errors='coerce')
@@ -107,7 +107,7 @@ class DataPreparationDiagnostics:
                     if valid_ratio > 0.8 and valid_ratio < 1.0:
                         issues.append({
                             'column': col,
-                            'issue': 'Parece ser numérico mas armazenado como texto',
+                            'issue': 'Looks numeric but stored as text',
                             'valid_ratio': valid_ratio
                         })
                 except:
@@ -116,10 +116,10 @@ class DataPreparationDiagnostics:
         if issues:
             self.problems_found.append({
                 'problem_id': 'P04',
-                'problem_name': 'Tipos de Dados Errados',
-                'severity': 'ALTO',
+                'problem_name': 'Wrong Data Types',
+                'severity': 'HIGH',
                 'issues': issues,
-                'message': f'Detectados {len(issues)} problemas de tipo de dado',
+                'message': f'Detected {len(issues)} data type issues',
                 'checklist_ref': 'CHK-004'
             })
     
@@ -133,17 +133,17 @@ class DataPreparationDiagnostics:
             if rare > 5:
                 self.problems_found.append({
                     'problem_id': 'P25',
-                    'problem_name': 'Categorias Raras',
+                    'problem_name': 'Rare Categories',
                     'column': col,
-                    'severity': 'MÉDIO',
+                    'severity': 'MEDIUM',
                     'rare_categories': rare,
-                    'message': f'Coluna "{col}" tem {rare} categorias raras (<1%)',
+                    'message': f'Column "{col}" has {rare} rare categories (<1%)',
                     'checklist_ref': 'CHK-027'
                 })
     
     def check_class_balance(self):
         """P09: Check class imbalance."""
-        # Detectar possível target column
+        # Detect possible target column
         last_col = self.df.columns[-1]
         target_candidates = [col for col in self.df.columns 
                             if 'target' in col.lower() or col == 'y' or col == 'label']
@@ -152,17 +152,17 @@ class DataPreparationDiagnostics:
         
         if self.df[target_col].dtype in ['object', 'int', 'bool']:
             dist = self.df[target_col].value_counts()
-            if len(dist) <= 10:  # Classificação
+            if len(dist) <= 10:  # Classification
                 imbalance_ratio = dist.max() / dist.min()
                 if imbalance_ratio > 3:
                     self.problems_found.append({
                         'problem_id': 'P09',
-                        'problem_name': 'Classes Desbalanceadas',
+                'problem_name': 'Imbalanced Classes',
                         'column': target_col,
-                        'severity': 'ALTO',
+                        'severity': 'HIGH',
                         'ratio': imbalance_ratio,
                         'distribution': dist.to_dict(),
-                        'message': f'Classes desbalanceadas em "{target_col}" (razão {imbalance_ratio:.1f}:1)',
+                        'message': f'Imbalanced classes in "{target_col}" (ratio {imbalance_ratio:.1f}:1)',
                         'checklist_ref': 'CHK-009'
                     })
     
@@ -183,10 +183,10 @@ class DataPreparationDiagnostics:
                         })
             
             if high_corr:
-                self.problems_found.append({
+                    self.problems_found.append({
                     'problem_id': 'P13',
-                    'problem_name': 'Multicolinearidade',
-                    'severity': 'MÉDIO',
+                    'problem_name': 'Multicollinearity',
+                    'severity': 'MEDIUM',
                     'pairs': high_corr,
                     'message': f'Detectadas {len(high_corr)} pares altamente correlacionados (>0.95)',
                     'checklist_ref': 'CHK-013'
@@ -198,11 +198,11 @@ class DataPreparationDiagnostics:
             if self.df[col].nunique() == 1:
                 self.problems_found.append({
                     'problem_id': 'P26',
-                    'problem_name': 'Coluna Constante',
+                'problem_name': 'Constant Column',
                     'column': col,
-                    'severity': 'MÉDIO',
+                    'severity': 'MEDIUM',
                     'value': self.df[col].iloc[0],
-                    'message': f'Coluna "{col}" tem apenas 1 valor único',
+                    'message': f'Column "{col}" has only 1 unique value',
                     'checklist_ref': 'CHK-028'
                 })
     
@@ -215,12 +215,12 @@ class DataPreparationDiagnostics:
         if ratio > 0.5:
             self.problems_found.append({
                 'problem_id': 'P31',
-                'problem_name': 'Dimensionalidade Alta',
-                'severity': 'MÉDIO',
+            'problem_name': 'High Dimensionality',
+                'severity': 'MEDIUM',
                 'ratio': ratio,
                 'features': n_features,
                 'samples': n_samples,
-                'message': f'Muitas features relativo a amostras (razão {ratio:.2f})',
+                'message': f'Too many features relative to samples (ratio {ratio:.2f})',
                 'checklist_ref': 'CHK-014'
             })
 
@@ -254,14 +254,14 @@ class QuickAnalyzer:
         for col, rate in missing.items():
             if rate <= 0:
                 continue
-            severity = "CRÍTICO" if rate > 50 else "ALTO" if rate > 10 else "MÉDIO"
+            severity = "CRITICAL" if rate > 50 else "HIGH" if rate > 10 else "MEDIUM"
             problems.append({
                 "problem_id": "P01",
-                "problem_name": "Valores em Falta",
+                "problem_name": "Missing Values",
                 "column": col,
                 "severity": severity,
                 "rate": rate,
-                "message": f'Coluna "{col}" tem {rate:.1f}% de valores em falta',
+                "message": f'Column "{col}" has {rate:.1f}% missing values',
                 "checklist_ref": "CHK-001"
             })
 
@@ -269,11 +269,11 @@ class QuickAnalyzer:
             pct = (duplicates / rows) * 100
             problems.append({
                 "problem_id": "P02",
-                "problem_name": "Dados Duplicados",
-                "severity": "ALTO",
+                "problem_name": "Duplicate Data",
+                "severity": "HIGH",
                 "count": duplicates,
                 "percentage": pct,
-                "message": f'Dataset tem {duplicates} linhas duplicadas ({pct:.1f}%)',
+                "message": f'Dataset has {duplicates} duplicate rows ({pct:.1f}%)',
                 "checklist_ref": "CHK-002"
             })
 
@@ -282,7 +282,7 @@ class QuickAnalyzer:
             if count <= 0 or not rows:
                 continue
             pct = (count / rows) * 100
-            severity = "MÉDIO" if pct < 5 else "ALTO" if pct < 10 else "CRÍTICO"
+            severity = "MEDIUM" if pct < 5 else "HIGH" if pct < 10 else "CRITICAL"
             problems.append({
                 "problem_id": "P03",
                 "problem_name": "Outliers",
@@ -290,17 +290,17 @@ class QuickAnalyzer:
                 "severity": severity,
                 "count": count,
                 "percentage": pct,
-                "message": f'Coluna "{col}" tem {count} outliers ({pct:.1f}%)',
+                "message": f'Column "{col}" has {count} outliers ({pct:.1f}%)',
                 "checklist_ref": "CHK-003"
             })
 
         if high_corr:
             problems.append({
                 "problem_id": "P13",
-                "problem_name": "Multicolinearidade",
-                "severity": "MÉDIO",
+                "problem_name": "Multicollinearity",
+                "severity": "MEDIUM",
                 "pairs": high_corr,
-                "message": f"Detectadas {len(high_corr)} pares altamente correlacionados (>0.95)",
+                "message": f"Detected {len(high_corr)} highly correlated pairs (>0.95)",
                 "checklist_ref": "CHK-013"
             })
 
@@ -313,12 +313,12 @@ class QuickAnalyzer:
                 if ratio > 3:
                     problems.append({
                         "problem_id": "P09",
-                        "problem_name": "Classes Desbalanceadas",
+                        "problem_name": "Imbalanced Classes",
                         "column": target_col or "target",
-                        "severity": "ALTO",
+                        "severity": "HIGH",
                         "ratio": ratio,
                         "distribution": target_dist,
-                        "message": f'Classes desbalanceadas em "{target_col}" (razão {ratio:.1f}:1)',
+                        "message": f'Imbalanced classes in "{target_col}" (ratio {ratio:.1f}:1)',
                         "checklist_ref": "CHK-009"
                     })
 
@@ -493,7 +493,7 @@ print(f"Reduced features from {X.shape[1]} to {len(selected_features)}")
             """
         
         else:
-            return "# Solução específica não disponível"
+            return "# Specific solution not available"
 
 
 # ============================================================================
@@ -524,7 +524,7 @@ class ExecutiveReport:
     def get_dataset_info(self) -> Dict:
         """Basic dataset information."""
         return {
-            'shape': f"{self.df.shape[0]} linhas × {self.df.shape[1]} colunas",
+            'shape': f"{self.df.shape[0]} rows × {self.df.shape[1]} columns",
             'columns': list(self.df.columns),
             'dtypes': self.df.dtypes.astype(str).to_dict(),
             'memory_mb': round(self.df.memory_usage(deep=True).sum() / 1024**2, 2),
@@ -534,11 +534,11 @@ class ExecutiveReport:
     def get_summary(self) -> Dict:
         """Executive summary."""
         total = len(self.problems_found)
-        critical = sum(1 for p in self.problems_found if p['severity'] == 'CRÍTICO')
-        high = sum(1 for p in self.problems_found if p['severity'] == 'ALTO')
-        medium = sum(1 for p in self.problems_found if p['severity'] == 'MÉDIO')
+        critical = sum(1 for p in self.problems_found if p['severity'] == 'CRITICAL')
+        high = sum(1 for p in self.problems_found if p['severity'] == 'HIGH')
+        medium = sum(1 for p in self.problems_found if p['severity'] == 'MEDIUM')
         
-        status = '🔴 CRÍTICO' if critical > 0 else '🟡 ATENÇÃO' if high > 0 else '🟢 BOM'
+        status = '🔴 CRITICAL' if critical > 0 else '🟡 WARNING' if high > 0 else '🟢 GOOD'
         
         return {
             'total_problems': total,
@@ -546,15 +546,15 @@ class ExecutiveReport:
             'high': high,
             'medium': medium,
             'status': status,
-            'recommendation': 'Resolver problemas críticos antes de treinar modelo'
+            'recommendation': 'Fix critical issues before training a model'
         }
     
     def get_problems_by_severity(self) -> Dict:
         """Problems grouped by severity."""
         return {
-            'CRÍTICO': [p for p in self.problems_found if p['severity'] == 'CRÍTICO'],
-            'ALTO': [p for p in self.problems_found if p['severity'] == 'ALTO'],
-            'MÉDIO': [p for p in self.problems_found if p['severity'] == 'MÉDIO']
+            'CRITICAL': [p for p in self.problems_found if p['severity'] == 'CRITICAL'],
+            'HIGH': [p for p in self.problems_found if p['severity'] == 'HIGH'],
+            'MEDIUM': [p for p in self.problems_found if p['severity'] == 'MEDIUM']
         }
     
     def get_quick_wins(self) -> List[Dict]:
@@ -569,18 +569,20 @@ class ExecutiveReport:
         """Recommended actions in priority order."""
         actions = []
         
-        critical = sum(1 for p in self.problems_found if p['severity'] == 'CRÍTICO')
+        critical = sum(1 for p in self.problems_found if p['severity'] == 'CRITICAL')
         if critical > 0:
-            actions.append(f"1. ⚠️  URGENTE: Resolver {critical} problema(s) CRÍTICO")
+            actions.append(f"1. ⚠️  URGENT: Fix {critical} CRITICAL issue(s)")
         
-        for problem in sorted(self.problems_found, 
-                             key=lambda x: {'CRÍTICO': 0, 'ALTO': 1, 'MÉDIO': 2}.get(x['severity'])):
+        for problem in sorted(
+            self.problems_found,
+            key=lambda x: {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2}.get(x['severity'])
+        ):
             actions.append(f"   - {problem['problem_id']}: {problem['message']}")
         
         actions.extend([
-            "2. Executar código sugerido para cada problema",
-            "3. Validar contra checklist CHK-001-CHK-035",
-            "4. Re-executar análise para confirmar resoluções"
+            "2. Run the suggested code for each issue",
+            "3. Validate against checklist CHK-001-CHK-035",
+            "4. Re-run the analysis to confirm fixes"
         ])
         
         return actions
@@ -589,8 +591,10 @@ class ExecutiveReport:
         """Top code suggestions."""
         snippets = []
         
-        for problem in sorted(self.problems_found,
-                             key=lambda x: {'CRÍTICO': 0, 'ALTO': 1, 'MÉDIO': 2}.get(x['severity'])):
+        for problem in sorted(
+            self.problems_found,
+            key=lambda x: {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2}.get(x['severity'])
+        ):
             code = SolutionGenerator.get_code(problem)
             snippets.append({
                 'problem_id': problem['problem_id'],
@@ -614,34 +618,34 @@ def analyze_csv(filepath: str, output_json: str = None):
     print("📊 DATA PREPARATION ANALYSIS")
     print("="*70)
     
-    # Carregar CSV
+    # Load CSV
     try:
         df = pd.read_csv(filepath)
-        print(f"✅ CSV carregado: {df.shape[0]} linhas × {df.shape[1]} colunas\n")
+        print(f"✅ CSV loaded: {df.shape[0]} rows × {df.shape[1]} columns\n")
     except Exception as e:
-        print(f"❌ Erro ao carregar CSV: {e}")
+        print(f"❌ Error loading CSV: {e}")
         return
     
-    # Diagnosticar
+    # Diagnose
     diagnostics = DataPreparationDiagnostics(df)
     problems = diagnostics.diagnose()
     
-    print(f"✅ {len(problems)} problema(s) detectado(s)\n")
+    print(f"✅ {len(problems)} issue(s) detected\n")
     
-    # Gerar relatório
+    # Build report
     report = ExecutiveReport(df, problems)
     full_report = report.generate()
     
-    # Imprimir resumo
+    # Print summary
     summary = full_report['summary']
     print(f"Status: {summary['status']}")
-    print(f"Críticos: {summary['critical']} | Altos: {summary['high']} | Médios: {summary['medium']}\n")
+    print(f"Critical: {summary['critical']} | High: {summary['high']} | Medium: {summary['medium']}\n")
     
-    # Problemas por severidade
-    print("🚨 PROBLEMAS DETECTADOS:")
+    # Issues by severity
+    print("🚨 DETECTED ISSUES:")
     print("-"*70)
     
-    for severity in ['CRÍTICO', 'ALTO', 'MÉDIO']:
+    for severity in ['CRITICAL', 'HIGH', 'MEDIUM']:
         problems_severity = full_report['problems_by_severity'][severity]
         if problems_severity:
             print(f"\n{severity}:")
@@ -649,19 +653,19 @@ def analyze_csv(filepath: str, output_json: str = None):
                 print(f"  • {p['problem_id']}: {p['message']}")
     
     # Quick wins
-    print(f"\n💡 QUICK WINS (Fáceis de Resolver):")
+    print(f"\n💡 QUICK WINS (Easy to fix):")
     print("-"*70)
     for p in full_report['quick_wins']:
         print(f"  • {p['problem_id']}: {p['message']}")
     
-    # Próximos passos
-    print(f"\n📋 PRÓXIMOS PASSOS:")
+    # Next steps
+    print(f"\n📋 NEXT STEPS:")
     print("-"*70)
     for action in full_report['recommended_actions']:
         print(f"  {action}")
     
-    # Código sugerido (primeiros 3)
-    print(f"\n🔧 CÓDIGO SUGERIDO (Top 3):")
+    # Suggested code (top 3)
+    print(f"\n🔧 SUGGESTED CODE (Top 3):")
     print("-"*70)
     for snippet in full_report['code_snippets'][:3]:
         print(f"\n### {snippet['problem_id']}: {snippet['problem_name']}")
@@ -671,11 +675,11 @@ def analyze_csv(filepath: str, output_json: str = None):
         print(snippet['code'])
         print("```")
     
-    # Salvar JSON
+    # Save JSON
     if output_json:
         with open(output_json, 'w', encoding='utf-8') as f:
             json.dump(full_report, f, indent=2, ensure_ascii=False)
-        print(f"\n✅ Relatório salvo em: {output_json}")
+        print(f"\n✅ Report saved to: {output_json}")
     
     return full_report
 
@@ -699,5 +703,5 @@ if __name__ == "__main__":
     report = analyze_csv(csv_file, json_file)
     
     print("\n" + "="*70)
-    print("✅ Análise completa!")
+    print("✅ Analysis complete!")
     print("="*70)

@@ -146,17 +146,27 @@ def _next_unsolved_problem(state: StudentState) -> str | None:
     return None
 
 
+def _compare_problem_sets(old: StudentState, new: StudentState) -> Dict[str, set]:
+    before = {p["problem_id"] for p in old.get("problems_detected", [])}
+    after = {p["problem_id"] for p in new.get("problems_detected", [])}
+    return {
+        "resolved": before - after,
+        "remaining": after,
+        "new": after - before,
+    }
+
+
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...)):
     """Upload CSV, analyze stats, and initialize a session."""
     if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Apenas CSV")
+        raise HTTPException(status_code=400, detail="CSV only")
 
     try:
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"CSV inválido: {exc}") from exc
+        raise HTTPException(status_code=400, detail=f"Invalid CSV: {exc}") from exc
 
     stats = _compute_stats(df)
     session_id = f"session_{uuid.uuid4().hex}"
@@ -167,6 +177,7 @@ async def upload_csv(file: UploadFile = File(...)):
         csv_filename=file.filename,
         csv_stats=stats,
     )
+    state["csv_version"] = 1
     state["last_action"] = "upload"
 
     state = AGENT_GRAPH.invoke(state)
@@ -176,6 +187,7 @@ async def upload_csv(file: UploadFile = File(...)):
         "success": True,
         "session_id": session_id,
         "filename": file.filename,
+        "csv_version": 1,
         "dataset_info": stats,
         "problems_detected": [
             {
@@ -197,31 +209,47 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=404, detail="Session not found")
 
     if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Apenas CSV")
+        raise HTTPException(status_code=400, detail="CSV only")
 
     try:
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"CSV inválido: {exc}") from exc
+        raise HTTPException(status_code=400, detail=f"Invalid CSV: {exc}") from exc
 
-    state = STUDENT_SESSIONS[session_id]
+    old_state = STUDENT_SESSIONS[session_id]
     stats = _compute_stats(df)
+    new_version = old_state.get("csv_version", 1) + 1
 
-    state["csv_filename"] = file.filename
-    state["csv_stats"] = stats
-    state["problems_detected"] = []
-    state["current_problem"] = None
-    state["last_action"] = "upload"
-    state["timestamp_last_update"] = datetime.now()
+    old_state["csv_filename"] = file.filename
+    old_state["csv_stats"] = stats
+    old_state["csv_version"] = new_version
+    old_state["problems_detected"] = []
+    old_state["current_problem"] = None
+    old_state["last_action"] = "upload"
+    old_state["timestamp_last_update"] = datetime.now()
 
-    state = AGENT_GRAPH.invoke(state)
+    before_state = old_state.copy()
+    state = AGENT_GRAPH.invoke(old_state)
     STUDENT_SESSIONS[session_id] = state
+
+    diff = _compare_problem_sets(before_state, state)
+    resolved_list = sorted(diff["resolved"])
+    remaining_list = sorted(diff["remaining"])
+    summary = ""
+    if resolved_list:
+        summary += f"✅ Resolved issue(s): {', '.join(resolved_list)}\n"
+    if remaining_list:
+        summary += f"⚠️ Still present: {', '.join(remaining_list)}\n"
+    if not summary:
+        summary = "ℹ️ No changes detected in the issues."
+    state["last_response"] = summary.strip()
 
     response = {
         "success": True,
         "session_id": session_id,
         "filename": file.filename,
+        "csv_version": new_version,
         "dataset_info": stats,
         "problems_detected": [
             {
@@ -258,9 +286,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             state["messages_count"] += 1
 
             msg_lower = message.lower()
-            if "lista" in msg_lower or "problemas" in msg_lower:
+            if "list" in msg_lower or "issues" in msg_lower:
                 state["last_action"] = "analyze"
-            elif "próximo" in msg_lower or "proximo" in msg_lower or "next" in msg_lower:
+            elif "next" in msg_lower:
                 next_problem = _next_unsolved_problem(state)
                 if next_problem:
                     state["current_problem"] = next_problem
@@ -319,3 +347,24 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+def _session_upload_dir(session_id: str) -> str:
+    return str((Path(__file__).resolve().parent / "uploads" / session_id))
+
+
+def _save_csv(contents: bytes, session_id: str, version: int) -> str:
+    upload_dir = Path(_session_upload_dir(session_id))
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"dataset_v{version}.csv"
+    path = upload_dir / filename
+    path.write_bytes(contents)
+    return str(path)
+
+
+def _compare_problem_sets(old: StudentState, new: StudentState) -> Dict[str, set]:
+    before = {p["problem_id"] for p in old.get("problems_detected", [])}
+    after = {p["problem_id"] for p in new.get("problems_detected", [])}
+    return {
+        "resolved": before - after,
+        "remaining": after,
+        "new": after - before,
+    }

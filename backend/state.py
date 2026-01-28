@@ -15,7 +15,7 @@ class Problem(TypedDict, total=False):
     """Detected problem (P01-P35)."""
     problem_id: str
     problem_name: str
-    severity: Literal["CRÍTICO", "ALTO", "MÉDIO", "BAIXO"]
+    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW"]
     description: str
     column: Optional[str]
     percentage: Optional[float]
@@ -33,6 +33,7 @@ class StudentState(TypedDict):
     # Dataset
     csv_filename: str
     csv_stats: Dict
+    csv_version: int
 
     # Problems
     problems_detected: List[Problem]
@@ -79,6 +80,8 @@ def create_initial_state(
         session_id=session_id,
         csv_filename=csv_filename,
         csv_stats=csv_stats,
+        csv_path=None,
+        csv_version=1,
         problems_detected=[],
         current_problem=None,
         problems_solved=[],

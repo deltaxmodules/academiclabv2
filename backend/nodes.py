@@ -50,7 +50,7 @@ def analyze_csv_node(state: StudentState) -> StudentState:
     """Analyze CSV stats and detect problems P01-P35."""
     problems = QuickAnalyzer.analyze_stats(state["csv_stats"])
 
-    severity_order = {"CRÍTICO": 0, "ALTO": 1, "MÉDIO": 2, "BAIXO": 3}
+    severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
     problems_sorted = sorted(
         problems,
         key=lambda p: severity_order.get(p.get("severity", "BAIXO"), 999),
@@ -66,24 +66,24 @@ def analyze_csv_node(state: StudentState) -> StudentState:
 
 def show_problems_node(state: StudentState) -> StudentState:
     """Show detected problems grouped by severity."""
-    output = "🎓 Olá! Analisei seu dataset e encontrei problemas:\n\n"
+    output = "🎓 Hi! I analyzed your dataset and found issues:\n\n"
 
     by_severity: Dict[str, List[Dict]] = {}
     for problem in state["problems_detected"]:
-        sev = problem.get("severity", "MÉDIO")
+        sev = problem.get("severity", "MEDIUM")
         by_severity.setdefault(sev, []).append(problem)
 
-    for severity in ["CRÍTICO", "ALTO", "MÉDIO", "BAIXO"]:
+    for severity in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
         if severity not in by_severity:
             continue
-        emoji = {"CRÍTICO": "🔴", "ALTO": "🟡", "MÉDIO": "🟢", "BAIXO": "⚪"}
+        emoji = {"CRITICAL": "🔴", "HIGH": "🟡", "MEDIUM": "🟢", "LOW": "⚪"}
         output += f"{emoji[severity]} {severity}:\n"
         for p in by_severity[severity]:
             output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}\n"
         output += "\n"
 
-    output += "❓ Qual problema gostaria de aprofundar primeiro?\n"
-    output += "💡 Dica: Comece pelos CRÍTICOS!"
+    output += "❓ Which issue would you like to explore first?\n"
+    output += "💡 Tip: start with CRITICAL issues."
 
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_response"] = output
@@ -97,7 +97,7 @@ def explain_problem_node(state: StudentState) -> StudentState:
     """Explain a specific problem using the LLM."""
     problem_id = state.get("current_problem")
     if not problem_id:
-        output = "❌ Nenhum problema selecionado. Por favor, escolha um problema."
+        output = "❌ No problem selected. Please choose one."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "explain"
@@ -106,7 +106,7 @@ def explain_problem_node(state: StudentState) -> StudentState:
 
     problem_detail = lookup_problem(problem_id)
     if not problem_detail:
-        output = f"❌ Problema {problem_id} não encontrado no framework."
+        output = f"❌ Problem {problem_id} was not found in the framework."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "explain"
@@ -116,31 +116,31 @@ def explain_problem_node(state: StudentState) -> StudentState:
     checklist_ref = problem_detail.get("checklist_ref", "CHK-001")
 
     system_prompt = """
-Você é um PROFESSOR DE DATA SCIENCE especializado em educação.
+You are a DATA SCIENCE INSTRUCTOR focused on education.
 
-REGRAS:
-❌ NUNCA execute código ou acesse filesystem
-❌ NUNCA diga que executou algo
-✅ SEMPRE explique em 3 partes: O QUÊ, POR QUÊ, COMO
-✅ Use analogias simples
-✅ Faça perguntas reflexivas
-✅ Cite o checklist item associado
+RULES:
+❌ Never execute code or access the filesystem
+❌ Never claim you executed anything
+✅ Always explain in 3 parts: WHAT, WHY, HOW
+✅ Use simple analogies
+✅ Ask reflective questions
+✅ Cite the related checklist item
 """
 
     user_prompt = f"""
-Aluno quer aprender sobre {problem_id}: {problem_detail.get('name')}
+The student wants to learn about {problem_id}: {problem_detail.get('name')}
 
-Contexto:
-- Nível de compreensão: {state['understanding_level']}
-- Já resolveu: {state['problems_solved']}
-- Tentativas neste problema: {state['attempts_current_problem']}
+Context:
+- Understanding level: {state['understanding_level']}
+- Already solved: {state['problems_solved']}
+- Attempts on this problem: {state['attempts_current_problem']}
 
 Framework:
 {json.dumps(problem_detail, ensure_ascii=False, indent=2)}
 
 Checklist: {checklist_ref}
 
-Explique de forma educativa. O aluno vai tentar resolver por conta própria.
+Explain in an educational way. The student will solve it on their own.
 """
 
     llm = _get_llm()
@@ -167,10 +167,10 @@ def show_examples_node(state: StudentState) -> StudentState:
     problem_id = state.get("current_problem")
     problem_detail = lookup_problem(problem_id) if problem_id else None
 
-    output = f"🔧 EXEMPLO DE CÓDIGO para {problem_id}:\n\n"
-    output += "⚠️ IMPORTANTE: Este é código EDUCACIONAL.\n"
-    output += "   Copie para seu ambiente e EXECUTE lá.\n"
-    output += "   Eu não vou executar nada aqui!\n\n"
+    output = f"🔧 CODE EXAMPLE for {problem_id}:\n\n"
+    output += "⚠️ IMPORTANT: This is EDUCATIONAL code.\n"
+    output += "   Copy it to your environment and run it there.\n"
+    output += "   I will not execute anything here.\n\n"
     output += "---\n\n"
 
     if problem_detail:
@@ -179,9 +179,9 @@ def show_examples_node(state: StudentState) -> StudentState:
         )
         if solutions:
             solution = solutions[0]
-            output += f"**Método: {solution.get('method', 'Método 1')}**\n"
-            output += f"Uso: {solution.get('use_case', 'Quando usar')}\n\n"
-            output += f"```python\n{solution.get('code', '# Código não disponível')}\n```\n\n"
+            output += f"**Method: {solution.get('method', 'Method 1')}**\n"
+            output += f"Use case: {solution.get('use_case', 'When to use')}\n\n"
+            output += f"```python\n{solution.get('code', '# Code not available')}\n```\n\n"
             output += "**Pros:**\n"
             for pro in solution.get("pros", []):
                 output += f"  ✅ {pro}\n"
@@ -190,7 +190,7 @@ def show_examples_node(state: StudentState) -> StudentState:
                 output += f"  ❌ {con}\n"
 
     output += "\n---\n\n"
-    output += "📝 Próximo passo: Copie o código, execute no seu PC, e volte aqui com o resultado!\n"
+    output += "📝 Next step: run the code locally and come back with the result.\n"
 
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_response"] = output
@@ -204,14 +204,14 @@ def ask_reflection_node(state: StudentState) -> StudentState:
     """Ask a reflection question to check understanding."""
     problem_id = state.get("current_problem")
     questions = {
-        "P01": "Por quê é importante tratar valores em falta antes de treinar um modelo?",
-        "P02": "Como você diferenciaria entre duplicados exatos e eventos reais repetidos?",
-        "P09": "Por quê usar acurácia é ruim quando temos classes desbalanceadas?",
-        "P14": "Você conseguiria usar 'lucro_realizado' para prever vendas em produção?",
+        "P01": "Why is it important to handle missing values before training a model?",
+        "P02": "How would you distinguish exact duplicates from repeated real events?",
+        "P09": "Why is accuracy misleading with imbalanced classes?",
+        "P14": "Could you use 'lucro_realizado' to predict sales in production?",
     }
-    question = questions.get(problem_id, f"O que você aprendeu sobre {problem_id}?")
+    question = questions.get(problem_id, f"What did you learn about {problem_id}?")
 
-    output = f"\n🤔 Pergunta reflexiva:\n\n**{question}**\n\nMe diga sua resposta!"
+    output = f"\n🤔 Reflection question:\n\n**{question}**\n\nTell me your answer."
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_action"] = "ask_reflection"
     state["timestamp_last_update"] = _now()
@@ -224,19 +224,19 @@ def validate_understanding_node(state: StudentState) -> StudentState:
     problem_id = state.get("current_problem")
 
     prompt = f"""
-Analise a conversa do aluno sobre {problem_id}.
+Analyze the student's conversation about {problem_id}.
 
-Conversa (últimas 4 mensagens):
+Conversation (last 4 messages):
 {json.dumps(state['conversation'][-4:], ensure_ascii=False, indent=2)}
 
-Julgue se o aluno COMPREENDEU o conceito.
+Judge whether the student UNDERSTOOD the concept.
 
-Responda APENAS em JSON:
+Respond ONLY in JSON:
 {{
   "understood": true/false,
   "confidence": 0.0-1.0,
   "level": "beginner|intermediate|advanced",
-  "feedback": "explicação breve do porquê"
+  "feedback": "brief explanation why"
 }}
 """
 
@@ -250,7 +250,7 @@ Responda APENAS em JSON:
             "understood": True,
             "confidence": 0.5,
             "level": "intermediate",
-            "feedback": "Resposta ambígua",
+            "feedback": "Ambiguous response",
         }
 
     state["last_validation_result"] = result
@@ -260,13 +260,13 @@ Responda APENAS em JSON:
         if problem_id and problem_id not in state["problems_solved"]:
             state["problems_solved"].append(problem_id)
         feedback = (
-            f"✅ Parabéns! Você compreendeu {problem_id}!\n\n"
-            "📤 Aplique as correções no seu ambiente e envie o CSV atualizado "
-            "para revalidarmos o próximo problema.\n\n"
+            f"✅ Great! You understood {problem_id}!\n\n"
+            "📤 Apply the fixes locally and upload the updated CSV "
+            "so we can revalidate the next issue.\n\n"
         )
         state["reupload_required"] = True
     else:
-        feedback = "🤔 Parece que ainda há dúvidas. Quer que eu explique novamente?\n\n"
+        feedback = "🤔 It seems there are still doubts. Want me to explain again?\n\n"
 
     state["conversation"].append(
         {"role": "assistant", "content": feedback + result.get("feedback", ""), "timestamp": _now()}
@@ -286,7 +286,7 @@ def validate_no_code_exec_node(state: StudentState) -> StudentState:
     for pattern in _FORBIDDEN_EXECUTION_PATTERNS:
         if pattern.lower() in last_message.lower():
             state["guardrail_failed"] = True
-            state["guardrail_reason"] = f"Padrão proibido detectado: {pattern}"
+            state["guardrail_reason"] = f"Forbidden pattern detected: {pattern}"
             state["guardrail_history"].append(
                 {"when": _now().isoformat(), "reason": state["guardrail_reason"], "action": "flagged"}
             )
@@ -295,7 +295,7 @@ def validate_no_code_exec_node(state: StudentState) -> StudentState:
     for regex in _EXECUTION_CLAIM_PATTERNS:
         if re.search(regex, last_message, flags=re.IGNORECASE):
             state["guardrail_failed"] = True
-            state["guardrail_reason"] = "Reivindicação de execução detectada"
+            state["guardrail_reason"] = "Execution claim detected"
             state["guardrail_history"].append(
                 {"when": _now().isoformat(), "reason": state["guardrail_reason"], "action": "flagged"}
             )
@@ -321,8 +321,8 @@ def mark_problem_solved_node(state: StudentState) -> StudentState:
         state["checklist_status"][chk_id] = True
 
     followup = (
-        "\n\n📤 Quando aplicar as correções no seu ambiente, faça upload do dataset atualizado "
-        "para revalidarmos e escolher o próximo problema."
+        "\n\n📤 After applying fixes locally, upload the updated dataset "
+        "so we can revalidate and pick the next issue."
     )
     state["last_response"] = (state.get("last_response", "") + followup).strip()
     state["reupload_required"] = True

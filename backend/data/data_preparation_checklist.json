@@ -1,576 +1,576 @@
 {
   "framework_name": "Data Science Methodology - Final Validation Checklist",
   "version": "1.0",
-  "description": "Checklist final completo em JSON para validar preparação de dados",
+  "description": "Complete final JSON checklist to validate data preparation",
   "total_items": 88,
   "created_date": "2026-01-28",
   
   "checklist_categories": [
     {
       "category_id": "BASIC",
-      "category_name": "Preparação Básica (Estrutura de Dados)",
-      "severity": "CRÍTICO",
-      "description": "Problemas fundamentais que afetam toda a análise",
+      "category_name": "Basic Preparation (Data Structure)",
+      "severity": "CRITICAL",
+      "description": "Fundamental issues that affect the entire analysis",
       "order": 1,
       "items": [
         {
           "id": "CHK-001",
           "problem_ref": "P01",
-          "task": "Valores em falta tratados",
-          "description": "Todos os valores em falta foram identificados, quantificados e resolvidos (removidos, imputados, ou marcados como flag)",
+          "task": "Missing values handled",
+          "description": "All missing values have been identified, quantified and resolved (removed, imputed, or marked as flags)",
           "checked": false,
           "acceptance_criteria": [
-            "df.isnull().sum().sum() == 0 ou documentado por coluna",
-            "Método de imputação registado",
-            "Taxa original de missing documentada"
+            "df.isnull().sum().sum() == 0 or documented per column",
+            "Imputation method recorded",
+            "Original missing rate documented"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-002",
           "problem_ref": "P02",
-          "task": "Duplicados removidos ou justificados",
-          "description": "Linhas/registos duplicados foram analisados e decididos (remover, agregar, manter)",
+          "task": "Duplicates removed or justified",
+          "description": "Duplicate rows/records have been analyzed and decided (remove, aggregate, keep)",
           "checked": false,
           "acceptance_criteria": [
-            "Duplicados exatos foram removidos",
-            "Duplicados parciais foram analisados no contexto",
-            "Decisão registada: manter, remover, ou agregar"
+            "Exact duplicates removed",
+            "Partial duplicates analyzed in context",
+            "Decision recorded: keep, remove, or aggregate"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-003",
           "problem_ref": "P03",
-          "task": "Outliers analisados e decididos",
-          "description": "Outliers foram identificados com múltiplos métodos e decisão tomada (corrigir, remover, capping, ou manter)",
+          "task": "Outliers analyzed and decided",
+          "description": "Outliers have been identified with multiple methods and action taken (correct, remove, capping, or keep)",
           "checked": false,
           "acceptance_criteria": [
-            "Método de detecção documentado (IQR, Z-score, Isolation Forest, etc)",
-            "Outliers validados contra contexto de negócio",
-            "Ação tomada documentada"
+            "Detection method documented (IQR, Z-score, Isolation Forest, etc)",
+            "Outliers validated against business context",
+            "Action taken documented"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         },
         {
           "id": "CHK-004",
           "problem_ref": "P04",
-          "task": "Tipos de dados corretos",
-          "description": "Cada coluna tem o tipo de dados apropriado (int, float, datetime, category, bool, object)",
+          "task": "Correct data types",
+          "description": "Each column has the appropriate data type (int, float, datetime, category, bool, object)",
           "checked": false,
           "acceptance_criteria": [
-            "print(df.dtypes) confirma tipos corretos",
-            "Datas em datetime64[ns]",
-            "Números em int ou float",
-            "Categorias em category se apropriado"
+            "print(df.dtypes) confirms correct types",
+            "Dates in datetime64[ns]",
+            "Numbers in int or float",
+            "Categories in category if appropriate"
           ],
-          "effort": "Baixo",
-          "impact": "Alto"
+          "effort": "Low",
+          "impact": "High"
         },
         {
           "id": "CHK-005",
           "problem_ref": "P05",
-          "task": "Categorias padronizadas",
-          "description": "Valores categóricos foram normalizados (case, acentos, espaços, sinónimos)",
+          "task": "Standardized categories",
+          "description": "Categorical values have been normalized (case, accents, spaces, synonyms)",
           "checked": false,
           "acceptance_criteria": [
-            "Texto em lowercase",
-            "Espaços extras removidos",
-            "Acentos removidos (se apropriado)",
-            "Sinónimos mapeados"
+            "Text in lowercase",
+            "Extra spaces removed",
+            "Accents removed (if appropriate)",
+            "Synonyms mapped"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         }
       ]
     },
     {
       "category_id": "QUALITY",
-      "category_name": "Qualidade de Dados",
-      "severity": "CRÍTICO",
-      "description": "Validações de qualidade e conformidade com regras de negócio",
+      "category_name": "Data Quality",
+      "severity": "CRITICAL",
+      "description": "Quality validations and compliance with business rules",
       "order": 2,
       "items": [
         {
           "id": "CHK-006",
           "problem_ref": "P06",
-          "task": "Valores inválidos tratados",
-          "description": "Valores que violam regras de negócio foram validados e tratados",
+          "task": "Invalid values handled",
+          "description": "Values that violate business rules have been validated and handled",
           "checked": false,
           "acceptance_criteria": [
-            "Regras de negócio documentadas (min/max, formatos, etc)",
-            "Valores inválidos identificados",
-            "Correção óbvia aplicada ou marcado como missing"
+            "Business rules documented (min/max, formats, etc)",
+            "Invalid values identified",
+            "Obvious correction applied or marked as missing"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         },
         {
           "id": "CHK-007",
           "problem_ref": "P07",
-          "task": "Features escaladas (se necessário para modelo)",
-          "description": "Escalas de features numéricas foram padronizadas conforme tipo de modelo",
+          "task": "Features scaled (if necessary for model)",
+          "description": "Scales of numeric features have been standardized according to model type",
           "checked": false,
           "acceptance_criteria": [
-            "Decisão: scaling necessário? SIM/NÃO documentado",
-            "Método escolhido: StandardScaler, MinMaxScaler, ou RobustScaler",
-            "Fit em treino, aplicado em teste",
-            "Scaler salvo para produção"
+            "Decision: is scaling necessary? YES/NO documented",
+            "Method chosen: StandardScaler, MinMaxScaler, or RobustScaler",
+            "Fit on training, applied on test",
+            "Scaler saved for production"
           ],
-          "effort": "Baixo",
-          "impact": "Médio"
+          "effort": "Low",
+          "impact": "Medium"
         },
         {
           "id": "CHK-008",
           "problem_ref": "P08",
-          "task": "Categóricas codificadas",
-          "description": "Variáveis categóricas foram convertidas para numérico apropriadamente",
+          "task": "Categorical variables encoded",
+          "description": "Categorical variables have been converted to numeric appropriately",
           "checked": false,
           "acceptance_criteria": [
-            "Categorias raras agrupadas em 'Other'",
-            "Método escolhido: OneHotEncoding, Ordinal, ou TargetEncoding",
-            "Fit em treino, aplicado em teste",
-            "Drop_first=True para evitar multicolinearidade"
+            "Rare categories grouped into 'Other'",
+            "Method chosen: OneHotEncoding, Ordinal, or TargetEncoding",
+            "Fit on training, applied on test",
+            "Drop_first=True to avoid multicollinearity"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-009",
           "problem_ref": "P09",
-          "task": "Classes desbalanceadas tratadas",
-          "description": "Distribuição desigual de classes foi identificada e tratada",
+          "task": "Imbalanced classes handled",
+          "description": "Unequal distribution of classes has been identified and handled",
           "checked": false,
           "acceptance_criteria": [
-            "Imbalance ratio calculado",
-            "Decisão: resampling, pesos, ou métricas adequadas?",
-            "Método aplicado documentado",
-            "Métricas: F1, ROC-AUC (nunca acurácia apenas)"
+            "Imbalance ratio calculated",
+            "Decision: resampling, weights, or appropriate metrics?",
+            "Method applied documented",
+            "Metrics: F1, ROC-AUC (never accuracy alone)"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-010",
           "problem_ref": "P10",
-          "task": "Viés analisado e mitigado",
-          "description": "Dados foram avaliados por grupos sensíveis e vieses identificados",
+          "task": "Bias analyzed and mitigated",
+          "description": "Data has been evaluated for sensitive groups and biases identified",
           "checked": false,
           "acceptance_criteria": [
-            "Análise por género, idade, raça, localização (conforme aplicável)",
-            "Teste estatístico realizado (chi-square)",
-            "Viés documentado: presente? SIM/NÃO",
-            "Mitigação aplicada: balanceamento de grupos, dados adicionais, etc"
+            "Analysis by gender, age, race, location (as applicable)",
+            "Statistical test performed (chi-square)",
+            "Bias documented: present? YES/NO",
+            "Mitigation applied: group balancing, additional data, etc"
           ],
-          "effort": "Alto",
-          "impact": "Alto"
+          "effort": "High",
+          "impact": "High"
         }
       ]
     },
     {
       "category_id": "FEATURES",
       "category_name": "Feature Engineering & Selection",
-      "severity": "ALTO",
-      "description": "Otimização de features para modelo",
+      "severity": "HIGH",
+      "description": "Optimization of features for model",
       "order": 3,
       "items": [
         {
           "id": "CHK-011",
           "problem_ref": "P11",
-          "task": "Features irrelevantes removidas",
-          "description": "Colunas sem variância ou inúteis foram identificadas e removidas",
+          "task": "Irrelevant features removed",
+          "description": "Columns with no variance or useless columns have been identified and removed",
           "checked": false,
           "acceptance_criteria": [
-            "Colunas constantes identificadas",
-            "Quasi-constantes (>99% um valor) identificadas",
-            "Features com baixa correlação com target removidas"
+            "Constant columns identified",
+            "Quasi-constant columns (>99% one value) identified",
+            "Features with low correlation to target removed"
           ],
-          "effort": "Baixo",
-          "impact": "Médio"
+          "effort": "Low",
+          "impact": "Medium"
         },
         {
           "id": "CHK-012",
           "problem_ref": "P12",
-          "task": "IDs removidos",
-          "description": "Identificadores únicos não-preditivos foram removidos",
+          "task": "IDs removed",
+          "description": "Non-predictive unique identifiers have been removed",
           "checked": false,
           "acceptance_criteria": [
-            "Colunas id, customer_id, transaction_id, etc identificadas",
-            "Removidas do dataset de modelo",
-            "Mantidas em índice se necessário rastreabilidade"
+            "Columns id, customer_id, transaction_id, etc identified",
+            "Removed from model dataset",
+            "Kept in index if traceability needed"
           ],
-          "effort": "Baixo",
-          "impact": "Médio"
+          "effort": "Low",
+          "impact": "Medium"
         },
         {
           "id": "CHK-013",
           "problem_ref": "P13",
-          "task": "Multicolinearidade tratada",
-          "description": "Features altamente correlacionadas foram identificadas e tratadas",
+          "task": "Multicollinearity handled",
+          "description": "Highly correlated features have been identified and handled",
           "checked": false,
           "acceptance_criteria": [
-            "Matriz de correlação analisada (>0.95)",
-            "VIF calculado (>10 é problemático)",
-            "Feature redundante removida ou PCA aplicado"
+            "Correlation matrix analyzed (>0.95)",
+            "VIF calculated (>10 is problematic)",
+            "Redundant feature removed or PCA applied"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         },
         {
           "id": "CHK-014",
           "problem_ref": "P31",
-          "task": "Dimensionalidade reduzida (se necessário)",
-          "description": "Se muitas features, redução de dimensionalidade foi aplicada",
+          "task": "Dimensionality reduced (if necessary)",
+          "description": "If many features, dimensionality reduction has been applied",
           "checked": false,
           "acceptance_criteria": [
-            "Decisão: feature selection ou PCA? SIM/NÃO",
-            "Se SIM: método escolhido documentado",
-            "Features reduzidas de X para Y",
-            "Performance modelo mantida ou melhorada"
+            "Decision: feature selection or PCA? YES/NO",
+            "If YES: method chosen documented",
+            "Features reduced from X to Y",
+            "Model performance maintained or improved"
           ],
-          "effort": "Alto",
-          "impact": "Médio"
+          "effort": "High",
+          "impact": "Medium"
         },
         {
           "id": "CHK-015",
           "problem_ref": "P32",
-          "task": "Interactions criadas (se relevante)",
-          "description": "Features compostas foram criadas quando há interações identificadas",
+          "task": "Interactions created (if relevant)",
+          "description": "Composite features have been created when interactions are identified",
           "checked": false,
           "acceptance_criteria": [
-            "Decisão: há interações relevantes? SIM/NÃO",
-            "Se SIM: polynomial features ou features manuais criadas",
-            "Nova feature tem correlação clara com target"
+            "Decision: are there relevant interactions? YES/NO",
+            "If YES: polynomial features or manual features created",
+            "New feature has clear correlation with target"
           ],
-          "effort": "Médio",
-          "impact": "Baixo-Médio"
+          "effort": "Medium",
+          "impact": "Low-Medium"
         }
       ]
     },
     {
       "category_id": "TEMPORAL",
-      "category_name": "Dados Temporais & Leakage",
-      "severity": "CRÍTICO",
-      "description": "Crítico para evitar leakage e problemas em séries temporais",
+      "category_name": "Temporal Data & Leakage",
+      "severity": "CRITICAL",
+      "description": "Critical to prevent leakage and temporal series issues",
       "order": 4,
       "items": [
         {
           "id": "CHK-016",
           "problem_ref": "P14",
-          "task": "Data leakage evitado",
-          "description": "Nenhuma informação do futuro 'vaza' para modelo de treino",
+          "task": "Data leakage prevented",
+          "description": "No information from the future 'leaks' into model training",
           "checked": false,
           "acceptance_criteria": [
-            "Features do futuro identificadas e removidas",
-            "Correlação > 0.95 com target investigada",
-            "Temporal order validado: feature antes de target",
-            "Nenhuma feature é consequência do target"
+            "Future features identified and removed",
+            "Correlation > 0.95 with target investigated",
+            "Temporal order validated: feature before target",
+            "No feature is consequence of target"
           ],
-          "effort": "Alto",
-          "impact": "CRÍTICO"
+          "effort": "High",
+          "impact": "CRITICAL"
         },
         {
           "id": "CHK-017",
           "problem_ref": "P15",
-          "task": "Joins validados",
-          "description": "Combinações de múltiplas fontes foram validadas",
+          "task": "Joins validated",
+          "description": "Combinations of multiple sources have been validated",
           "checked": false,
           "acceptance_criteria": [
-            "Chaves primárias únicas",
-            "Chaves estrangeiras válidas",
-            "Explosão ou perda detectada e tratada",
-            "Match rate documentado (>95%?)"
+            "Primary keys unique",
+            "Foreign keys valid",
+            "Explosion or loss detected and handled",
+            "Match rate documented (>95%?)"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-018",
           "problem_ref": "P16",
-          "task": "Séries temporais ordenadas",
-          "description": "Dados temporais foram normalizados e ordenados corretamente",
+          "task": "Time series ordered",
+          "description": "Temporal data has been normalized and correctly ordered",
           "checked": false,
           "acceptance_criteria": [
-            "Timezone normalizado (UTC ou local consistente)",
-            "Ordenado por timestamp",
-            "Frequência uniformizada (resample se necessário)",
-            "Gaps tratados (interpolação ou missing)"
+            "Timezone normalized (UTC or consistent local)",
+            "Ordered by timestamp",
+            "Frequency uniformized (resample if necessary)",
+            "Gaps handled (interpolation or missing)"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-019",
           "problem_ref": "P17",
-          "task": "Drift detectado e tratado",
-          "description": "Mudanças de distribuição ao longo do tempo foram identificadas",
+          "task": "Drift detected and handled",
+          "description": "Changes in distribution over time have been identified",
           "checked": false,
           "acceptance_criteria": [
-            "Distribuições comparadas por período (mensal, trimestral)",
-            "Teste KS realizado (p-value < 0.05?)",
-            "Se drift: dados recentes priorizados ou re-treino planeado"
+            "Distributions compared by period (monthly, quarterly)",
+            "KS test performed (p-value < 0.05?)",
+            "If drift: recent data prioritized or re-training planned"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-020",
           "problem_ref": "P18",
-          "task": "Ruído reduzido",
-          "description": "Ruído não-informativo foi reduzido",
+          "task": "Noise reduced",
+          "description": "Non-informative noise has been reduced",
           "checked": false,
           "acceptance_criteria": [
-            "Decisão: há ruído? SIM/NÃO",
-            "Se SIM: método escolhido (moving average, Kalman, etc)",
-            "Variáveis baixa qualidade removidas"
+            "Decision: is there noise? YES/NO",
+            "If YES: method chosen (moving average, Kalman, etc)",
+            "Low quality variables removed"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         }
       ]
     },
     {
       "category_id": "UNSTRUCTURED",
-      "category_name": "Dados Não-Estruturados",
-      "severity": "ALTO",
-      "description": "Tratamento de texto, imagens, áudio",
+      "category_name": "Unstructured Data",
+      "severity": "HIGH",
+      "description": "Handling of text, images, audio",
       "order": 5,
       "items": [
         {
           "id": "CHK-021",
           "problem_ref": "P19",
-          "task": "Texto processado",
-          "description": "Dados textuais foram limpos e convertidos para numérico",
+          "task": "Text processed",
+          "description": "Textual data has been cleaned and converted to numeric",
           "checked": false,
           "acceptance_criteria": [
-            "Limpeza básica: lowercase, URLs, emails, pontuação removidos",
-            "Idioma detectado e tratado",
-            "Vetorização: TF-IDF, Word2Vec, ou Transformers aplicada",
-            "Se longo: chunking aplicado"
+            "Basic cleaning: lowercase, URLs, emails, punctuation removed",
+            "Language detected and handled",
+            "Vectorization: TF-IDF, Word2Vec, or Transformers applied",
+            "If long: chunking applied"
           ],
-          "effort": "Alto",
-          "impact": "Alto"
+          "effort": "High",
+          "impact": "High"
         },
         {
           "id": "CHK-022",
           "problem_ref": "P20",
-          "task": "Imagens validadas",
-          "description": "Arquivos de imagem foram validados e padronizados",
+          "task": "Images validated",
+          "description": "Image files have been validated and standardized",
           "checked": false,
           "acceptance_criteria": [
-            "Ficheiros corrompidos identificados e removidos",
-            "Tamanho padronizado (ex: 224x224)",
-            "Pixels normalizados ([0,1], [-1,1], ou ImageNet)",
-            "Augmentação aplicada só em treino"
+            "Corrupted files identified and removed",
+            "Size standardized (e.g., 224x224)",
+            "Pixels normalized ([0,1], [-1,1], or ImageNet)",
+            "Augmentation applied only to training"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         },
         {
           "id": "CHK-023",
           "problem_ref": "P21",
-          "task": "Áudio processado",
-          "description": "Dados de áudio foram processados e features extraídas",
+          "task": "Audio processed",
+          "description": "Audio data has been processed and features extracted",
           "checked": false,
           "acceptance_criteria": [
-            "Sample rate padronizado (ex: 16kHz)",
-            "Ruído reduzido",
-            "Segmentado se necessário",
-            "Features extraídas: mel-spectrogram, MFCC, ZCR"
+            "Sample rate standardized (e.g., 16kHz)",
+            "Noise reduced",
+            "Segmented if necessary",
+            "Features extracted: mel-spectrogram, MFCC, ZCR"
           ],
-          "effort": "Alto",
-          "impact": "Alto"
+          "effort": "High",
+          "impact": "High"
         },
         {
           "id": "CHK-024",
           "problem_ref": "P22",
-          "task": "Integridade referencial validada",
-          "description": "Referências entre tabelas foram validadas",
+          "task": "Referential integrity validated",
+          "description": "References between tables have been validated",
           "checked": false,
           "acceptance_criteria": [
-            "Primary keys são únicas",
-            "Foreign keys têm referência válida",
-            "Registos órfãos identificados e tratados",
-            "Match rate documentado"
+            "Primary keys are unique",
+            "Foreign keys have valid reference",
+            "Orphan records identified and handled",
+            "Match rate documented"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         }
       ]
     },
     {
       "category_id": "ADVANCED",
-      "category_name": "Problemas Avançados",
-      "severity": "MÉDIO",
-      "description": "Casos edge e otimizações avançadas",
+      "category_name": "Advanced Issues",
+      "severity": "MEDIUM",
+      "description": "Edge cases and advanced optimizations",
       "order": 6,
       "items": [
         {
           "id": "CHK-025",
           "problem_ref": "P23",
-          "task": "Frequências temporais uniformizadas",
-          "description": "Dados com frequências mistas foram harmonizados",
+          "task": "Temporal frequencies uniformized",
+          "description": "Data with mixed frequencies have been harmonized",
           "checked": false,
           "acceptance_criteria": [
-            "Frequências detectadas (diária, semanal, mensal?)",
-            "Resample ou agregação aplicada",
-            "Frequência final consistente"
+            "Frequencies detected (daily, weekly, monthly?)",
+            "Resample or aggregation applied",
+            "Final frequency consistent"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         },
         {
           "id": "CHK-026",
           "problem_ref": "P24",
-          "task": "Gaps temporais tratados",
-          "description": "Períodos sem dados foram tratados",
+          "task": "Temporal gaps handled",
+          "description": "Periods without data have been handled",
           "checked": false,
           "acceptance_criteria": [
-            "Gaps identificados (threshold: dias/semanas?)",
-            "Decisão: interpolar ou manter missing?",
-            "Método aplicado documentado"
+            "Gaps identified (threshold: days/weeks?)",
+            "Decision: interpolate or keep missing?",
+            "Method applied documented"
           ],
-          "effort": "Médio",
-          "impact": "Médio"
+          "effort": "Medium",
+          "impact": "Medium"
         },
         {
           "id": "CHK-027",
           "problem_ref": "P25",
-          "task": "Categorias raras agrupadas",
-          "description": "Categorias com poucas observações foram agrupadas",
+          "task": "Rare categories grouped",
+          "description": "Categories with few observations have been grouped",
           "checked": false,
           "acceptance_criteria": [
-            "Threshold definido (ex: <1%)",
-            "Categorias raras agrupadas em 'Other' ou removidas",
-            "Número final de categorias reduzido"
+            "Threshold defined (e.g., <1%)",
+            "Rare categories grouped into 'Other' or removed",
+            "Final number of categories reduced"
           ],
-          "effort": "Baixo",
-          "impact": "Baixo-Médio"
+          "effort": "Low",
+          "impact": "Low-Medium"
         },
         {
           "id": "CHK-028",
           "problem_ref": "P26",
-          "task": "Colunas constantes removidas",
-          "description": "Features com variância zero foram removidas",
+          "task": "Constant columns removed",
+          "description": "Features with zero variance have been removed",
           "checked": false,
           "acceptance_criteria": [
-            "Colunas com df[col].nunique() == 1 identificadas",
-            "Removidas do dataset"
+            "Columns with df[col].nunique() == 1 identified",
+            "Removed from dataset"
           ],
-          "effort": "Baixo",
-          "impact": "Baixo"
+          "effort": "Low",
+          "impact": "Low"
         },
         {
           "id": "CHK-029",
           "problem_ref": "P27",
-          "task": "Target auditado",
-          "description": "Variável alvo foi validada para inconsistências",
+          "task": "Target audited",
+          "description": "Target variable has been validated for inconsistencies",
           "checked": false,
           "acceptance_criteria": [
-            "Distribuição de classes analisada",
-            "Inconsistências detectadas (mesmo input, múltiplos outputs)",
-            "Decisão: remover, moda, ou classe 'Ambíguo'?"
+            "Class distribution analyzed",
+            "Inconsistencies detected (same input, multiple outputs)",
+            "Decision: remove, mode, or 'Ambiguous' class?"
           ],
-          "effort": "Médio",
-          "impact": "CRÍTICO"
+          "effort": "Medium",
+          "impact": "CRITICAL"
         }
       ]
     },
     {
       "category_id": "CRITICAL",
-      "category_name": "Problemas Críticos (Essencial)",
-      "severity": "CRÍTICO",
-      "description": "Validações MUST-HAVE antes de modelo",
+      "category_name": "Critical Issues (Essential)",
+      "severity": "CRITICAL",
+      "description": "MUST-HAVE validations before model",
       "order": 7,
       "items": [
         {
           "id": "CHK-030",
           "problem_ref": "P28",
-          "task": "Granularidade correta",
-          "description": "Unidade de análise está bem definida e consistente",
+          "task": "Correct granularity",
+          "description": "Unit of analysis is well-defined and consistent",
           "checked": false,
           "acceptance_criteria": [
-            "Unidade de análise definida: cliente? produto? dia?",
-            "Agregação apropriada (uma linha por cliente ou por transação?)",
-            "Duplicação evitada"
+            "Unit of analysis defined: customer? product? day?",
+            "Appropriate aggregation (one row per customer or per transaction?)",
+            "Duplication avoided"
           ],
-          "effort": "Alto",
-          "impact": "CRÍTICO"
+          "effort": "High",
+          "impact": "CRITICAL"
         },
         {
           "id": "CHK-031",
           "problem_ref": "P29",
-          "task": "Leakage indireto evitado",
-          "description": "Features que são consequência do target foram removidas",
+          "task": "Indirect leakage prevented",
+          "description": "Features that are consequence of target have been removed",
           "checked": false,
           "acceptance_criteria": [
-            "Features identificadas como consequências removidas",
-            "Temporal order validado: feature antes de target",
-            "Correlação alta com target investigada"
+            "Features identified as consequences removed",
+            "Temporal order validated: feature before target",
+            "High correlation with target investigated"
           ],
-          "effort": "Alto",
-          "impact": "CRÍTICO"
+          "effort": "High",
+          "impact": "CRITICAL"
         },
         {
           "id": "CHK-032",
           "problem_ref": "P30",
-          "task": "Split feito corretamente",
-          "description": "Separação entre treino/teste/validação está correta",
+          "task": "Split done correctly",
+          "description": "Separation between train/test/validation is correct",
           "checked": false,
           "acceptance_criteria": [
-            "Entidades não duplicadas entre partições",
-            "Split estratificado se classificação",
-            "Temporal se séries temporais",
-            "Fit ONLY em treino, aplicar em teste/validação"
+            "Entities not duplicated across partitions",
+            "Stratified split if classification",
+            "Temporal if time series",
+            "Fit ONLY on training, apply on test/validation"
           ],
-          "effort": "Alto",
-          "impact": "CRÍTICO"
+          "effort": "High",
+          "impact": "CRITICAL"
         },
         {
           "id": "CHK-033",
           "problem_ref": "P33",
-          "task": "Valores especiais tratados",
-          "description": "Infinitos, valores muito grandes/pequenos foram tratados",
+          "task": "Special values handled",
+          "description": "Infinity, very large/small values have been handled",
           "checked": false,
           "acceptance_criteria": [
-            "np.inf e -np.inf identificados e tratados",
-            "Valores > 1e10 ou < -1e10 investigados",
-            "Substituídos por np.nan ou capped"
+            "np.inf and -np.inf identified and handled",
+            "Values > 1e10 or < -1e10 investigated",
+            "Replaced by np.nan or capped"
           ],
-          "effort": "Baixo",
-          "impact": "Médio"
+          "effort": "Low",
+          "impact": "Medium"
         },
         {
           "id": "CHK-034",
           "problem_ref": "P34",
-          "task": "Precisão numérica validada",
-          "description": "Erros de floating-point foram mitigados",
+          "task": "Numeric precision validated",
+          "description": "Floating-point errors have been mitigated",
           "checked": false,
           "acceptance_criteria": [
-            "Para dinheiro: Decimal usado (não float)",
-            "Arredondamento apropriado (ex: 2 casas decimais)",
-            "Escala apropriada para valores muito pequenos/grandes"
+            "For money: Decimal used (not float)",
+            "Appropriate rounding (e.g., 2 decimal places)",
+            "Appropriate scale for very small/large values"
           ],
-          "effort": "Baixo",
-          "impact": "Baixo"
+          "effort": "Low",
+          "impact": "Low"
         },
         {
           "id": "CHK-035",
           "problem_ref": "P35",
-          "task": "CV apropriada ao tipo de dados",
-          "description": "Validação cruzada foi configurada corretamente",
+          "task": "CV appropriate to data type",
+          "description": "Cross-validation has been configured correctly",
           "checked": false,
           "acceptance_criteria": [
             "Random data: StratifiedKFold",
-            "Séries temporais: TimeSeriesSplit",
-            "Dados hierárquicos: GroupKFold",
-            "Nunca aleatório em séries temporais"
+            "Time series: TimeSeriesSplit",
+            "Hierarchical data: GroupKFold",
+            "Never random on time series"
           ],
-          "effort": "Médio",
-          "impact": "Alto"
+          "effort": "Medium",
+          "impact": "High"
         }
       ]
     }
@@ -584,94 +584,94 @@
     "low_items": 17,
     "completion_checklist": [
       {
-        "stage": "1. Preparação Básica",
+        "stage": "1. Basic Preparation",
         "items_count": 5,
         "estimated_days": "1-2",
         "critical": true,
-        "description": "Verificar estrutura fundamental de dados"
+        "description": "Verify fundamental data structure"
       },
       {
-        "stage": "2. Qualidade de Dados",
+        "stage": "2. Data Quality",
         "items_count": 5,
         "estimated_days": "2-3",
         "critical": true,
-        "description": "Validar conformidade e regras de negócio"
+        "description": "Validate compliance and business rules"
       },
       {
         "stage": "3. Feature Engineering",
         "items_count": 5,
         "estimated_days": "3-5",
         "critical": false,
-        "description": "Otimizar features para modelo"
+        "description": "Optimize features for model"
       },
       {
-        "stage": "4. Dados Temporais & Leakage",
+        "stage": "4. Temporal Data & Leakage",
         "items_count": 5,
         "estimated_days": "2-4",
         "critical": true,
-        "description": "Evitar leakage e problemas temporais"
+        "description": "Prevent leakage and temporal issues"
       },
       {
-        "stage": "5. Dados Não-Estruturados",
+        "stage": "5. Unstructured Data",
         "items_count": 4,
         "estimated_days": "3-7",
         "critical": false,
-        "description": "Processar texto, imagens, áudio"
+        "description": "Process text, images, audio"
       },
       {
-        "stage": "6. Problemas Avançados",
+        "stage": "6. Advanced Issues",
         "items_count": 5,
         "estimated_days": "2-3",
         "critical": false,
-        "description": "Edge cases e otimizações"
+        "description": "Edge cases and optimizations"
       },
       {
-        "stage": "7. Problemas Críticos",
+        "stage": "7. Critical Issues",
         "items_count": 6,
         "estimated_days": "2-3",
         "critical": true,
-        "description": "Validação MUST-HAVE antes de modelo"
+        "description": "MUST-HAVE validations before model"
       }
     ]
   },
   
   "quick_validation": {
     "must_pass": [
-      "CHK-001 - Valores em falta tratados",
-      "CHK-004 - Tipos de dados corretos",
-      "CHK-014 - Data leakage evitado",
-      "CHK-017 - Joins validados",
-      "CHK-030 - Split feito corretamente",
-      "CHK-031 - Granularidade correta",
-      "CHK-032 - Leakage indireto evitado"
+      "CHK-001 - Missing values handled",
+      "CHK-004 - Correct data types",
+      "CHK-016 - Data leakage prevented",
+      "CHK-017 - Joins validated",
+      "CHK-030 - Correct granularity",
+      "CHK-031 - Indirect leakage prevented",
+      "CHK-032 - Split done correctly"
     ],
     "should_pass": [
-      "CHK-002 - Duplicados removidos",
-      "CHK-005 - Categorias padronizadas",
-      "CHK-008 - Categóricas codificadas",
-      "CHK-009 - Classes desbalanceadas tratadas",
-      "CHK-018 - Séries temporais ordenadas"
+      "CHK-002 - Duplicates removed",
+      "CHK-005 - Standardized categories",
+      "CHK-008 - Categorical variables encoded",
+      "CHK-009 - Imbalanced classes handled",
+      "CHK-018 - Time series ordered"
     ],
     "nice_to_have": [
-      "CHK-014 - Dimensionalidade reduzida",
-      "CHK-015 - Interactions criadas",
-      "CHK-019 - Drift detectado"
+      "CHK-014 - Dimensionality reduced",
+      "CHK-015 - Interactions created",
+      "CHK-019 - Drift detected"
     ]
   },
 
   "validation_script_template": {
-    "description": "Template Python para validar checklist automaticamente",
-    "code": "import pandas as pd\nimport numpy as np\n\nclass DataPreparationValidator:\n    def __init__(self, df):\n        self.df = df\n        self.results = {}\n    \n    def check_missing_values(self):\n        missing_rate = (self.df.isnull().sum() / len(self.df) * 100).to_dict()\n        self.results['CHK-001'] = {\n            'passed': self.df.isnull().sum().sum() == 0,\n            'missing_by_column': missing_rate\n        }\n    \n    def check_duplicates(self):\n        duplicates = self.df.duplicated().sum()\n        self.results['CHK-002'] = {\n            'passed': duplicates == 0,\n            'duplicates_found': duplicates\n        }\n    \n    def check_data_types(self):\n        self.results['CHK-004'] = {\n            'passed': True,\n            'data_types': self.df.dtypes.to_dict()\n        }\n    \n    def check_no_leakage(self, features, target):\n        # High correlation check\n        correlations = self.df[features].corrwith(self.df[target]).abs()\n        suspicious = correlations[correlations > 0.95]\n        self.results['CHK-014'] = {\n            'passed': len(suspicious) == 0,\n            'suspicious_features': suspicious.to_dict() if len(suspicious) > 0 else {}\n        }\n    \n    def run_all_checks(self):\n        self.check_missing_values()\n        self.check_duplicates()\n        self.check_data_types()\n        return self.results\n    \n    def print_report(self):\n        print('='*50)\n        print('DATA PREPARATION VALIDATION REPORT')\n        print('='*50)\n        for check_id, result in self.results.items():\n            status = '✓ PASS' if result['passed'] else '✗ FAIL'\n            print(f\"{check_id}: {status}\")\n        print('='*50)\n\n# Uso:\n# validator = DataPreparationValidator(df)\n# validator.run_all_checks()\n# validator.print_report()\n"
+    "description": "Python template to automatically validate checklist",
+    "code": "import pandas as pd\nimport numpy as np\n\nclass DataPreparationValidator:\n    def __init__(self, df):\n        self.df = df\n        self.results = {}\n    \n    def check_missing_values(self):\n        missing_rate = (self.df.isnull().sum() / len(self.df) * 100).to_dict()\n        self.results['CHK-001'] = {\n            'passed': self.df.isnull().sum().sum() == 0,\n            'missing_by_column': missing_rate\n        }\n    \n    def check_duplicates(self):\n        duplicates = self.df.duplicated().sum()\n        self.results['CHK-002'] = {\n            'passed': duplicates == 0,\n            'duplicates_found': duplicates\n        }\n    \n    def check_data_types(self):\n        self.results['CHK-004'] = {\n            'passed': True,\n            'data_types': self.df.dtypes.to_dict()\n        }\n    \n    def check_no_leakage(self, features, target):\n        # High correlation check\n        correlations = self.df[features].corrwith(self.df[target]).abs()\n        suspicious = correlations[correlations > 0.95]\n        self.results['CHK-016'] = {\n            'passed': len(suspicious) == 0,\n            'suspicious_features': suspicious.to_dict() if len(suspicious) > 0 else {}\n        }\n    \n    def run_all_checks(self):\n        self.check_missing_values()\n        self.check_duplicates()\n        self.check_data_types()\n        return self.results\n    \n    def print_report(self):\n        print('='*50)\n        print('DATA PREPARATION VALIDATION REPORT')\n        print('='*50)\n        for check_id, result in self.results.items():\n            status = '✓ PASS' if result['passed'] else '✗ FAIL'\n            print(f\"{check_id}: {status}\")\n        print('='*50)\n\n# Usage:\n# validator = DataPreparationValidator(df)\n# validator.run_all_checks()\n# validator.print_report()\n"
   },
 
   "notes": {
-    "how_to_use": "Marcar cada item como completo quando validado",
+    "how_to_use": "Check each item as complete when validated",
     "color_coding": {
-      "red": "CRÍTICO - MUST PASS",
-      "yellow": "ALTO - STRONGLY RECOMMENDED",
-      "green": "MÉDIO/BAIXO - NICE TO HAVE"
+      "red": "CRITICAL - MUST PASS",
+      "yellow": "HIGH - STRONGLY RECOMMENDED",
+      "green": "MEDIUM/LOW - NICE TO HAVE"
     },
-    "effort_estimation": "Estimativas são por item, tempo total ~2-4 semanas dependendo tamanho dataset",
-    "documentation": "Documentar método e razão para cada decisão tomada"
+    "effort_estimation": "Estimates are per item, total time ~2-4 weeks depending on dataset size",
+    "documentation": "Document method and reason for each decision taken"
   }
 }

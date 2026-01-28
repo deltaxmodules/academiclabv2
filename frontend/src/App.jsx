@@ -14,12 +14,13 @@ function App() {
   const [reuploadReady, setReuploadReady] = useState(false);
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
+  const [showReuploadModal, setShowReuploadModal] = useState(false);
 
   const statusLabel = useMemo(() => {
-    if (status === "connected") return "✅ Conectado";
-    if (status === "connecting") return "⏳ Conectando";
-    if (status === "error") return "⚠️ Erro";
-    return "🕒 Aguardando";
+    if (status === "connected") return "✅ Connected";
+    if (status === "connecting") return "⏳ Connecting";
+    if (status === "error") return "⚠️ Error";
+    return "🕒 Waiting";
   }, [status]);
 
   const connectWebSocket = (sid) => {
@@ -45,7 +46,7 @@ function App() {
         if (
           payload.reupload_required ||
           payload.action === "mark_solved" ||
-          payload.content.toLowerCase().includes("faça upload do dataset atualizado")
+          payload.content.toLowerCase().includes("upload the updated dataset")
         ) {
           setReuploadReady(true);
         }
@@ -73,15 +74,20 @@ function App() {
       const data = await response.json();
       if (data.success) {
         setSessionId(data.session_id);
-        setCsvInfo(data.dataset_info);
-        setMessages([
-          {
-            id: "initial",
+        setCsvInfo({
+          ...data.dataset_info,
+          csv_version: data.csv_version || 1,
+        });
+        setMessages((prev) => {
+          const next = sessionId ? prev : [];
+          next.push({
+            id: `${Date.now()}-upload`,
             role: "assistant",
             content: data.message,
-            action: "analyze",
-          },
-        ]);
+            action: sessionId ? "reupload" : "analyze",
+          });
+          return [...next];
+        });
         if (!sessionId) {
           connectWebSocket(data.session_id);
         }
@@ -112,6 +118,10 @@ function App() {
     wsRef.current.send(JSON.stringify({ message: userMessage }));
   };
 
+  const handleOpenReupload = () => {
+    setShowReuploadModal(true);
+  };
+
   useEffect(() => {
     return () => {
       if (wsRef.current) {
@@ -119,6 +129,7 @@ function App() {
       }
     };
   }, []);
+
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -133,16 +144,16 @@ function App() {
           <span className="badge">AcademicLab Edu</span>
           <h1>Data Preparation Tutor</h1>
           <p>
-            Plataforma educativa com LangGraph para guiar estudantes na preparação
-            de dados antes da análise.
+            An educational LangGraph tutor to guide students through data
+            preparation before analysis.
           </p>
         </div>
         <div className="hero-card">
-          <h2>Fluxo guiado</h2>
+          <h2>Guided flow</h2>
           <ul>
-            <li>Diagnóstico P01-P35</li>
-            <li>Explicação estruturada</li>
-            <li>Exemplos e reflexão</li>
+            <li>P01-P35 diagnostics</li>
+            <li>Structured explanations</li>
+            <li>Examples and reflection</li>
             <li>Checklist CHK-001-035</li>
           </ul>
         </div>
@@ -151,13 +162,17 @@ function App() {
       <main className="workspace">
         {!sessionId && (
           <section className="upload-card">
-            <h3>1. Faça upload do CSV</h3>
-            <p>O tutor analisa o dataset e organiza os problemas por severidade.</p>
+            <h3>1. Upload your CSV</h3>
+            <p>The tutor analyzes the dataset and orders issues by severity.</p>
             <label className="upload-button">
-              <input type="file" accept=".csv" onChange={handleCsvUpload} />
-              Selecionar arquivo
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCsvUpload}
+              />
+              Select file
             </label>
-            {loading && <span className="status">Analisando...</span>}
+            {loading && <span className="status">Analyzing...</span>}
           </section>
         )}
 
@@ -165,23 +180,22 @@ function App() {
           <section className="chat-card">
             <div className="chat-header">
               <div>
-                <h3>2. Converse com o tutor</h3>
+                <h3>2. Chat with the tutor</h3>
                 <span className="status-pill">{statusLabel}</span>
               </div>
               {csvInfo && (
                 <div className="dataset-meta">
-                  <span>{csvInfo.rows} linhas</span>
-                  <span>{csvInfo.columns} colunas</span>
+                  <span>{csvInfo.rows} rows</span>
+                  <span>{csvInfo.columns} columns</span>
                   <span>{csvInfo.memory_mb} MB</span>
                 </div>
               )}
             </div>
-
             <div className="chat-body">
               {messages.map((msg) => (
                 <div key={msg.id} className={`bubble ${msg.role}`}>
                   <div className="bubble-header">
-                    <span>{msg.role === "user" ? "👤 Você" : "🤖 Tutor"}</span>
+                    <span>{msg.role === "user" ? "👤 You" : "🤖 Tutor"}</span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
                   </div>
                   <pre>{msg.content}</pre>
@@ -190,7 +204,7 @@ function App() {
               {loading && (
                 <div className="bubble assistant">
                   <div className="bubble-header">🤖 Tutor</div>
-                  <pre>⏳ Pensando...</pre>
+                  <pre>⏳ Thinking...</pre>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -200,21 +214,52 @@ function App() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Faça uma pergunta ou escolha um P##..."
+                placeholder="Ask a question or choose a P##..."
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 disabled={loading || status !== "connected"}
               />
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
-                Enviar
+                Send
               </button>
-              <label className="reupload-button">
-                <input type="file" accept=".csv" onChange={handleCsvUpload} />
-                Reavaliar CSV
-              </label>
+              <button
+                className="reupload-button"
+                type="button"
+                onClick={handleOpenReupload}
+              >
+                Re-evaluate CSV
+              </button>
             </div>
           </section>
         )}
       </main>
+
+      {showReuploadModal && sessionId && (
+        <div className="modal-backdrop" onClick={() => setShowReuploadModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>📁 File to edit:</h3>
+            <p className="path">{`dataset_v${csvInfo?.csv_version || "?"}.csv`}</p>
+            <p>📝 Fix the issue in Jupyter and bring the updated file here.</p>
+            <p className="path-hint">
+              Save the updated file in the same folder you selected for the first upload.
+            </p>
+            <pre className="code-block">{`import pandas as pd
+
+df = pd.read_csv("dataset_v${csvInfo?.csv_version || "?"}.csv")
+# ... apply fixes ...
+df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
+`}</pre>
+            <div className="modal-actions">
+              <label className="upload-button">
+                <input type="file" accept=".csv" onChange={(e) => { handleCsvUpload(e); setShowReuploadModal(false); }} />
+                ✅ I have the new file
+              </label>
+              <button className="ghost" onClick={() => setShowReuploadModal(false)}>
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

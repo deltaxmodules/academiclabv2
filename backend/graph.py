@@ -25,11 +25,11 @@ def analyze_and_show_node(state: StudentState) -> StudentState:
 def congratulations_node(state: StudentState) -> StudentState:
     """Final message when all problems are solved."""
     message = (
-        "🎉 Parabéns! Você concluiu todos os problemas detectados.\n\n"
-        "✅ Próximos passos:\n"
-        "1. Aplique as soluções no seu ambiente\n"
-        "2. Reanalise seu dataset\n"
-        "3. Compartilhe resultados com seu instrutor\n"
+        "🎉 Congratulations! You completed all detected issues.\n\n"
+        "✅ Next steps:\n"
+        "1. Apply the fixes locally\n"
+        "2. Reanalyze your dataset\n"
+        "3. Share the results with your instructor\n"
     )
     state["conversation"].append({"role": "assistant", "content": message})
     state["last_response"] = message
@@ -46,7 +46,7 @@ def _step_router(state: StudentState) -> str:
 
     wants_examples = any(
         term in last_user_text
-        for term in ["exemplo", "exemplos", "codigo", "código", "code", "example", "ejemplo", "exemple"]
+        for term in ["example", "examples", "code", "snippet"]
     )
 
     if last_action in {"init", "upload"}:

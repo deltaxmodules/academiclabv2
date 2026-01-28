@@ -2,103 +2,103 @@
   "framework_name": "Data Science Methodology - Complete Data Preparation Framework",
   "version": "1.0",
   "total_problems": 35,
-  "description": "Framework completo para identificar, diagnosticar e resolver problemas em preparação de dados",
+  "description": "Complete framework to identify, diagnose and resolve data preparation issues",
   
   "data_preparation_complete": [
     {
       "id": "P01",
-      "name": "Valores em Falta (Missing Values)",
-      "objective": "Identificar, quantificar e resolver valores ausentes",
-      "severity": "CRÍTICO",
-      "frequency": "Muito comum",
+      "name": "Missing Values",
+      "objective": "Identify, quantify and resolve missing values",
+      "severity": "CRITICAL",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Medir Percentagem",
-          "description": "Quantificar o volume de valores em falta",
+          "name": "Measure Percentage",
+          "description": "Quantify the volume of missing values",
           "code": "missing_rate = (col.isnull().sum() / len(col)) * 100",
           "detection": [
-            "Se > 50%: coluna potencialmente inútil → P11",
-            "Se 10-50%: avaliar importância vs custo de imputação",
-            "Se < 10%: geralmente seguro imputar"
+            "If > 50%: column potentially useless → P11",
+            "If 10-50%: evaluate importance vs imputation cost",
+            "If < 10%: generally safe to impute"
           ],
           "python_example": "df.isnull().sum() / len(df) * 100"
         },
         {
           "step": 2,
-          "name": "Se Pouco (< 10%) → Remover",
-          "description": "Remover linhas com poucos valores em falta",
+          "name": "If Few (< 10%) → Remove",
+          "description": "Remove rows with few missing values",
           "solutions": [
             {
               "method": "Drop rows",
-              "code": "df = df.dropna(subset=['coluna'])",
-              "use_case": "Quando poucos registos com missing e aleatoriedade confirmada (MCAR)",
-              "pros": "Simples, sem perda de informação estrutural",
-              "cons": "Pode remover dados relevantes se não é MCAR"
+              "code": "df = df.dropna(subset=['column'])",
+              "use_case": "When few records with missing and randomness confirmed (MCAR)",
+              "pros": "Simple, no loss of structural information",
+              "cons": "May remove relevant data if not MCAR"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Se Muito (10-50%) → Imputar por Tipo",
-          "description": "Diferentes estratégias conforme tipo de dado",
+          "name": "If Many (10-50%) → Impute by Type",
+          "description": "Different strategies depending on data type",
           "solutions": [
             {
-              "type": "Numérico",
+              "type": "Numeric",
               "methods": [
                 {
-                  "name": "Média/Mediana",
+                  "name": "Mean/Median",
                   "code": "df['col'].fillna(df['col'].median())",
-                  "use_case": "Distribuição normal (média) ou com outliers (mediana)",
-                  "pros": "Rápido, preserva média global",
-                  "cons": "Reduz variância, cria picos artificiais"
+                  "use_case": "Normal distribution (mean) or with outliers (median)",
+                  "pros": "Fast, preserves global mean",
+                  "cons": "Reduces variance, creates artificial spikes"
                 },
                 {
-                  "name": "Forward Fill (Séries Temporais)",
+                  "name": "Forward Fill (Time Series)",
                   "code": "df['col'].fillna(method='ffill')",
-                  "use_case": "Dados temporais onde valor anterior é bom estimador",
-                  "pros": "Mantém continuidade temporal",
-                  "cons": "Pode propagar erros antigos"
+                  "use_case": "Temporal data where previous value is good estimator",
+                  "pros": "Maintains temporal continuity",
+                  "cons": "May propagate old errors"
                 },
                 {
                   "name": "KNN Imputation",
                   "code": "from sklearn.impute import KNNImputer\nknn_imputer = KNNImputer(n_neighbors=5)\ndf['col'] = knn_imputer.fit_transform(df[['col']])",
-                  "use_case": "Quando valor correlacionado com vizinhos",
-                  "pros": "Considera padrões similares",
-                  "cons": "Computacionalmente caro, não escala bem"
+                  "use_case": "When value is correlated with neighbors",
+                  "pros": "Considers similar patterns",
+                  "cons": "Computationally expensive, doesn't scale well"
                 },
                 {
                   "name": "MICE (Multiple Imputation)",
                   "code": "from sklearn.experimental import enable_iterative_imputer\nfrom sklearn.impute import IterativeImputer\nimputer = IterativeImputer()\ndf = imputer.fit_transform(df)",
-                  "use_case": "Múltiplas colunas com missing correlacionadas",
-                  "pros": "Melhor para dados complexos",
-                  "cons": "Lento, requer mais conhecimento"
+                  "use_case": "Multiple columns with correlated missing",
+                  "pros": "Better for complex data",
+                  "cons": "Slow, requires more knowledge"
                 }
               ]
             },
             {
-              "type": "Categórico",
+              "type": "Categorical",
               "methods": [
                 {
-                  "name": "Moda",
+                  "name": "Mode",
                   "code": "df['col'].fillna(df['col'].mode()[0])",
-                  "use_case": "Categoria mais frequente",
-                  "pros": "Simples, preserva distribuição",
-                  "cons": "Ignora padrão de missing"
+                  "use_case": "Most frequent category",
+                  "pros": "Simple, preserves distribution",
+                  "cons": "Ignores missing pattern"
                 },
                 {
-                  "name": "Nova Categoria 'Unknown'",
+                  "name": "New 'Unknown' Category",
                   "code": "df['col'].fillna('Unknown')",
-                  "use_case": "Quando missing pode ser significativo",
-                  "pros": "Preserva informação de missing",
-                  "cons": "Cria categoria extra"
+                  "use_case": "When missing may be significant",
+                  "pros": "Preserves missing information",
+                  "cons": "Creates extra category"
                 },
                 {
-                  "name": "Imputação por Grupo",
+                  "name": "Group-based Imputation",
                   "code": "df.groupby('group')['col'].transform(lambda x: x.fillna(x.mode()[0]))",
-                  "use_case": "Missing correlacionado com variável de grupo",
-                  "pros": "Contextualmente apropriado",
-                  "cons": "Requer conhecimento de grupos"
+                  "use_case": "Missing correlated with group variable",
+                  "pros": "Contextually appropriate",
+                  "cons": "Requires group knowledge"
                 }
               ]
             },
@@ -106,18 +106,18 @@
               "type": "Temporal",
               "methods": [
                 {
-                  "name": "Interpolação Linear",
+                  "name": "Linear Interpolation",
                   "code": "df['col'].interpolate(method='linear')",
-                  "use_case": "Valores que evoluem linearmente no tempo",
-                  "pros": "Mantém tendência",
-                  "cons": "Assume linearidade"
+                  "use_case": "Values evolving linearly over time",
+                  "pros": "Maintains trend",
+                  "cons": "Assumes linearity"
                 },
                 {
-                  "name": "Interpolação Polinomial",
+                  "name": "Polynomial Interpolation",
                   "code": "df['col'].interpolate(method='polynomial', order=2)",
-                  "use_case": "Valores com curvatura",
-                  "pros": "Mais flexível que linear",
-                  "cons": "Pode overfitting"
+                  "use_case": "Values with curvature",
+                  "pros": "More flexible than linear",
+                  "cons": "May overfit"
                 }
               ]
             }
@@ -125,93 +125,93 @@
         },
         {
           "step": 4,
-          "name": "Se Missing Tem Significado → Criar Flag",
-          "description": "Preservar informação que valor estava em falta",
+          "name": "If Missing Has Meaning → Create Flag",
+          "description": "Preserve information that value was missing",
           "code": "df['col_missing_flag'] = df['col'].isnull().astype(int)\ndf['col'] = df['col'].fillna(df['col'].median())",
-          "rationale": "Missing pode ser preditor: 'estava em falta' pode indicar padrão",
-          "example": "Ausência de registos de compra pode indicar cliente inativo"
+          "rationale": "Missing may be predictor: 'was missing' may indicate pattern",
+          "example": "Absence of purchase records may indicate inactive customer"
         },
         {
           "step": 5,
-          "name": "Validar",
-          "description": "Confirmar resolução",
-          "code": "assert df.isnull().sum().sum() == 0, 'Ainda há valores em falta'\nprint(f'Missing antes: X, Missing depois: Y')"
+          "name": "Validate",
+          "description": "Confirm resolution",
+          "code": "assert df.isnull().sum().sum() == 0, 'Still missing values'\nprint(f'Missing before: X, Missing after: Y')"
         }
       ]
     },
     {
       "id": "P02",
-      "name": "Dados Duplicados",
-      "objective": "Identificar linhas/registos repetidos e decidir se manter ou remover",
-      "severity": "ALTO",
-      "frequency": "Comum",
+      "name": "Duplicate Data",
+      "objective": "Identify duplicate rows/records and decide whether to keep or remove",
+      "severity": "HIGH",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Duplicados",
+          "name": "Detect Duplicates",
           "solutions": [
             {
-              "type": "Exatos",
+              "type": "Exact",
               "code": "duplicates_full = df.duplicated().sum()",
-              "description": "Todas as colunas iguais"
+              "description": "All columns equal"
             },
             {
-              "type": "Em Subset",
+              "type": "In Subset",
               "code": "duplicates_id = df.duplicated(subset=['id']).sum()",
-              "description": "Em colunas específicas"
+              "description": "In specific columns"
             },
             {
-              "type": "Listar",
+              "type": "List",
               "code": "df[df.duplicated(subset=['id'], keep=False)].sort_values('id')"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Se Exatos → Remover",
-          "code": "df = df.drop_duplicates()\nprint(f'Removidos X duplicados exatos')",
+          "name": "If Exact → Remove",
+          "code": "df = df.drop_duplicates()\nprint(f'Removed X exact duplicates')",
           "variants": [
-            "drop_duplicates(keep='first') - manter primeiro",
-            "drop_duplicates(keep='last') - manter último"
+            "drop_duplicates(keep='first') - keep first",
+            "drop_duplicates(keep='last') - keep last"
           ]
         },
         {
           "step": 3,
-          "name": "Se Eventos Reais → Manter",
-          "description": "Múltiplos registos legítimos da mesma entidade",
-          "validation": "Se mesmo ID com timestamps diferentes = eventos legítimos",
+          "name": "If Real Events → Keep",
+          "description": "Multiple legitimate records of same entity",
+          "validation": "If same ID with different timestamps = legitimate events",
           "examples": [
-            "Múltiplas compras mesmo cliente",
-            "Vários contactos por pessoa",
-            "Múltiplos registos por dia"
+            "Multiple purchases same customer",
+            "Several contacts per person",
+            "Multiple records per day"
           ]
         },
         {
           "step": 4,
-          "name": "Senão → Aplicar Regra",
+          "name": "Otherwise → Apply Rule",
           "solutions": [
             {
-              "method": "Mais Recente",
+              "method": "Most Recent",
               "code": "df = df.sort_values('timestamp').drop_duplicates(subset=['id'], keep='last')",
-              "use_case": "Dados que se atualizam (ex: estado de conta)",
-              "example": "Manter última versão de perfil de cliente"
+              "use_case": "Data that updates (e.g., account status)",
+              "example": "Keep latest version of customer profile"
             },
             {
-              "method": "Agregar",
-              "code": "df_agg = df.groupby('id').agg({\n  'valor': 'sum',\n  'data': 'max',\n  'categoria': 'first'\n}).reset_index()",
-              "use_case": "Múltiplos eventos por entidade que devem ser resumidos",
-              "example": "Total de vendas por cliente"
+              "method": "Aggregate",
+              "code": "df_agg = df.groupby('id').agg({\n  'value': 'sum',\n  'date': 'max',\n  'category': 'first'\n}).reset_index()",
+              "use_case": "Multiple events per entity that should be summarized",
+              "example": "Total sales per customer"
             },
             {
-              "method": "Combinar",
-              "code": "df_combined = df.groupby('id')['telefone'].apply(\n  lambda x: ' | '.join(x.dropna().unique())\n).reset_index()",
-              "use_case": "Múltiplos valores que devem ser preservados"
+              "method": "Combine",
+              "code": "df_combined = df.groupby('id')['phone'].apply(\n  lambda x: ' | '.join(x.dropna().unique())\n).reset_index()",
+              "use_case": "Multiple values that should be preserved"
             }
           ]
         },
         {
           "step": 5,
-          "name": "Validar",
+          "name": "Validate",
           "code": "assert not df.duplicated().any()"
         }
       ]
@@ -219,266 +219,266 @@
     {
       "id": "P03",
       "name": "Outliers",
-      "objective": "Identificar valores anormalmente grandes ou pequenos",
-      "severity": "MÉDIO-ALTO",
-      "frequency": "Muito comum",
+      "objective": "Identify abnormally large or small values",
+      "severity": "MEDIUM-HIGH",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Outliers",
+          "name": "Detect Outliers",
           "methods": [
             {
               "name": "IQR (Interquartile Range)",
               "code": "Q1 = df['col'].quantile(0.25)\nQ3 = df['col'].quantile(0.75)\nIQR = Q3 - Q1\nlower = Q1 - 1.5 * IQR\nupper = Q3 + 1.5 * IQR\noutliers = df[(df['col'] < lower) | (df['col'] > upper)]",
-              "pros": "Simples, não paramétrico",
-              "cons": "Assume distribuição não extrema"
+              "pros": "Simple, non-parametric",
+              "cons": "Assumes non-extreme distribution"
             },
             {
               "name": "Z-Score",
               "code": "from scipy import stats\nz_scores = np.abs(stats.zscore(df['col']))\noutliers = df[z_scores > 3]",
-              "pros": "Baseia-se em desvio padrão",
-              "cons": "Assume normalidade"
+              "pros": "Based on standard deviation",
+              "cons": "Assumes normality"
             },
             {
               "name": "Isolation Forest",
               "code": "from sklearn.ensemble import IsolationForest\niso_forest = IsolationForest(contamination=0.05)\noutliers = df[iso_forest.fit_predict(df[['col']]) == -1]",
-              "pros": "Não paramétrico, eficiente",
+              "pros": "Non-parametric, efficient",
               "cons": "Black box"
             },
             {
               "name": "LOF (Local Outlier Factor)",
               "code": "from sklearn.neighbors import LocalOutlierFactor\nlof = LocalOutlierFactor(n_neighbors=20)\noutliers = df[lof.fit_predict(df[['col']]) == -1]",
-              "pros": "Detecta outliers locais",
-              "cons": "Computacionalmente caro"
+              "pros": "Detects local outliers",
+              "cons": "Computationally expensive"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Se Erro → Corrigir ou Missing",
-          "description": "Valores impossíveis ou claramente errados",
+          "name": "If Error → Fix or Mark Missing",
+          "description": "Impossible or clearly wrong values",
           "examples": [
-            "Peso pessoa: 999 kg → erro de digitação",
-            "Idade: 150 anos → impossível",
-            "Temperatura: -1000°C → impossível"
+            "Person weight: 999 kg → typo",
+            "Age: 150 years → impossible",
+            "Temperature: -1000°C → impossible"
           ],
           "solutions": [
             {
-              "method": "Corrigir padrão",
-              "code": "df.loc[df['peso'] > 500, 'peso'] = df.loc[df['peso'] > 500, 'peso'] / 1000"
+              "method": "Fix pattern",
+              "code": "df.loc[df['weight'] > 500, 'weight'] = df.loc[df['weight'] > 500, 'weight'] / 1000"
             },
             {
-              "method": "Marcar como missing",
-              "code": "df.loc[df['idade'] > 120, 'idade'] = np.nan"
+              "method": "Mark as missing",
+              "code": "df.loc[df['age'] > 120, 'age'] = np.nan"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Se Raro Mas Real → Manter",
-          "description": "Outliers legítimos do domínio",
+          "name": "If Rare But Real → Keep",
+          "description": "Legitimate domain outliers",
           "examples": [
-            "Venda excecionalmente grande",
-            "Pico de tráfego em data especial",
-            "Mudança de regime (crises)"
+            "Exceptionally large sale",
+            "Traffic spike on special date",
+            "Regime change (crises)"
           ],
-          "validation": "Confirmar contexto de negócio e temporal"
+          "validation": "Confirm business context and temporal context"
         },
         {
           "step": 4,
-          "name": "Senão → Capping ou Transformação",
+          "name": "Otherwise → Capping or Transformation",
           "solutions": [
             {
               "method": "Capping (Winsorization)",
               "code": "from scipy.stats.mstats import winsorize\ndf['col_capped'] = winsorize(df['col'], limits=[0.05, 0.05])",
-              "description": "Limita ao 5º e 95º percentil",
-              "use_case": "Quando outliers não são tão relevantes"
+              "description": "Limits to 5th and 95th percentile",
+              "use_case": "When outliers are not very relevant"
             },
             {
               "method": "Log Transformation",
               "code": "df['col_log'] = np.log1p(df['col'])",
-              "use_case": "Outliers multiplicativos",
-              "note": "log1p = log(1 + x) para evitar log(0)"
+              "use_case": "Multiplicative outliers",
+              "note": "log1p = log(1 + x) to avoid log(0)"
             },
             {
               "method": "Box-Cox",
               "code": "from scipy.stats import boxcox\ndf['col_boxcox'], lambda_param = boxcox(df['col'] + 1)",
-              "use_case": "Encontra transformação ótima"
+              "use_case": "Finds optimal transformation"
             },
             {
               "method": "Robust Scaling",
               "code": "from sklearn.preprocessing import RobustScaler\nscaler = RobustScaler()\ndf['col_scaled'] = scaler.fit_transform(df[['col']])",
-              "description": "Usa mediana e IQR (menos sensível a outliers)"
+              "description": "Uses median and IQR (less sensitive to outliers)"
             }
           ]
         },
         {
           "step": 5,
-          "name": "Validar",
-          "code": "print(f'Min antes: {original.min()}, Min depois: {processed.min()}')\nprint(f'Max antes: {original.max()}, Max depois: {processed.max()}')"
+          "name": "Validate",
+          "code": "print(f'Min before: {original.min()}, Min after: {processed.min()}')\nprint(f'Max before: {original.max()}, Max after: {processed.max()}')"
         }
       ]
     },
     {
       "id": "P04",
-      "name": "Tipos Errados (Data Types)",
-      "objective": "Garantir que cada coluna tem o tipo correto",
-      "severity": "CRÍTICO",
-      "frequency": "Muito comum",
+      "name": "Wrong Data Types",
+      "objective": "Ensure each column has the correct type",
+      "severity": "CRITICAL",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Tipos Incorretos",
+          "name": "Detect Wrong Types",
           "code": "print(df.dtypes)",
           "common_issues": [
-            "Números como string: '123.45'",
-            "Datas como string: '2024-01-15'",
-            "Booleanos como 0/1 ou 'yes'/'no'",
-            "Categorias como object sem limite"
+            "Numbers as string: '123.45'",
+            "Dates as string: '2024-01-15'",
+            "Booleans as 0/1 or 'yes'/'no'",
+            "Categories as object without limit"
           ]
         },
         {
           "step": 2,
-          "name": "Converter Números",
+          "name": "Convert Numbers",
           "solutions": [
             {
-              "method": "String para float",
-              "code": "df['coluna'] = pd.to_numeric(df['coluna'], errors='coerce')",
-              "note": "errors='coerce' transforma conversões falhadas em NaN"
+              "method": "String to float",
+              "code": "df['column'] = pd.to_numeric(df['column'], errors='coerce')",
+              "note": "errors='coerce' transforms failed conversions to NaN"
             },
             {
-              "method": "Com separadores",
-              "code": "df['valor'] = df['valor'].str.replace(',', '').astype(float)"
+              "method": "With separators",
+              "code": "df['value'] = df['value'].str.replace(',', '').astype(float)"
             },
             {
-              "method": "Europeu (1.234,56)",
-              "code": "df['valor'] = df['valor'].str.replace('.', '').str.replace(',', '.').astype(float)"
+              "method": "European (1.234,56)",
+              "code": "df['value'] = df['value'].str.replace('.', '').str.replace(',', '.').astype(float)"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Converter Datas",
+          "name": "Convert Dates",
           "solutions": [
             {
-              "method": "Com formato",
-              "code": "df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')"
+              "method": "With format",
+              "code": "df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')"
             },
             {
-              "method": "Automático",
-              "code": "df['data'] = pd.to_datetime(df['data'], errors='coerce')",
-              "warning": "Pode ser ambíguo (01/02/2024 = janeiro ou fevereiro?)"
+              "method": "Automatic",
+              "code": "df['date'] = pd.to_datetime(df['date'], errors='coerce')",
+              "warning": "May be ambiguous (01/02/2024 = January or February?)"
             },
             {
-              "method": "Com timezone",
-              "code": "df['data_utc'] = df['data'].dt.tz_localize('UTC')\ndf['data_local'] = df['data_utc'].dt.tz_convert('Europe/Zurich')"
+              "method": "With timezone",
+              "code": "df['date_utc'] = df['date'].dt.tz_localize('UTC')\ndf['date_local'] = df['date_utc'].dt.tz_convert('Europe/Zurich')"
             }
           ]
         },
         {
           "step": 4,
-          "name": "Converter Booleanos",
+          "name": "Convert Booleans",
           "solutions": [
             {
-              "method": "De 0/1",
+              "method": "From 0/1",
               "code": "df['flag'] = df['flag'].astype(bool)"
             },
             {
-              "method": "De string",
+              "method": "From string",
               "code": "bool_map = {'yes': True, 'no': False, 'Y': True, 'N': False}\ndf['flag'] = df['flag'].map(bool_map)"
             },
             {
-              "method": "De múltiplos valores",
-              "code": "df['flag'] = df['coluna'].isin(['yes', 'true', 'Y', '1']).astype(bool)"
+              "method": "From multiple values",
+              "code": "df['flag'] = df['column'].isin(['yes', 'true', 'Y', '1']).astype(bool)"
             }
           ]
         },
         {
           "step": 5,
-          "name": "Converter para Categorias",
-          "code": "df['categoria'] = df['categoria'].astype('category')",
-          "benefit": "Reduz memória, melhora performance",
-          "ordered_example": "df['nivel'] = pd.Categorical(df['nivel'], categories=['baixo', 'médio', 'alto'], ordered=True)"
+          "name": "Convert to Categories",
+          "code": "df['category'] = df['category'].astype('category')",
+          "benefit": "Reduces memory, improves performance",
+          "ordered_example": "df['level'] = pd.Categorical(df['level'], categories=['low', 'medium', 'high'], ordered=True)"
         },
         {
           "step": 6,
-          "name": "Falhas Viram Missing",
-          "note": "Automático com errors='coerce' - depois aplicar P01"
+          "name": "Failures Become Missing",
+          "note": "Automatic with errors='coerce' - then apply P01"
         },
         {
           "step": 7,
-          "name": "Validar",
-          "code": "assert df['data'].dtype == 'datetime64[ns]'\nassert df['valor'].dtype == 'float64'"
+          "name": "Validate",
+          "code": "assert df['date'].dtype == 'datetime64[ns]'\nassert df['value'].dtype == 'float64'"
         }
       ]
     },
     {
       "id": "P05",
-      "name": "Inconsistências em Categorias",
-      "objective": "Padronizar valores categóricos",
-      "severity": "MÉDIO",
-      "frequency": "Muito comum",
+      "name": "Category Inconsistencies",
+      "objective": "Standardize categorical values",
+      "severity": "MEDIUM",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Normalizar Texto",
+          "name": "Normalize Text",
           "solutions": [
             {
               "method": "Lowercase",
-              "code": "df['coluna'] = df['coluna'].str.lower()"
+              "code": "df['column'] = df['column'].str.lower()"
             },
             {
-              "method": "Remover espaços",
-              "code": "df['coluna'] = df['coluna'].str.strip()"
+              "method": "Remove spaces",
+              "code": "df['column'] = df['column'].str.strip()"
             },
             {
-              "method": "Remover acentos",
-              "code": "import unicodedata\ndef remove_accents(text):\n    return ''.join(c for c in unicodedata.normalize('NFD', text)\n                   if unicodedata.category(c) != 'Mn')\ndf['coluna'] = df['coluna'].apply(remove_accents)"
+              "method": "Remove accents",
+              "code": "import unicodedata\ndef remove_accents(text):\n    return ''.join(c for c in unicodedata.normalize('NFD', text)\n                   if unicodedata.category(c) != 'Mn')\ndf['column'] = df['column'].apply(remove_accents)"
             },
             {
-              "method": "Remover especiais",
-              "code": "df['coluna'] = df['coluna'].str.replace(r'[^\\w\\s]', '', regex=True)"
+              "method": "Remove special chars",
+              "code": "df['column'] = df['column'].str.replace(r'[^\\w\\s]', '', regex=True)"
             },
             {
-              "method": "Combinado",
-              "code": "df['coluna'] = (df['coluna']\n    .str.lower()\n    .str.strip()\n    .apply(remove_accents))"
+              "method": "Combined",
+              "code": "df['column'] = (df['column']\n    .str.lower()\n    .str.strip()\n    .apply(remove_accents))"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Mapear Sinónimos",
+          "name": "Map Synonyms",
           "solutions": [
             {
-              "method": "Dicionário",
-              "code": "sinónimos = {'masculino': 'M', 'homem': 'M', 'male': 'M'}\ndf['genero'] = df['genero'].map(sinónimos)"
+              "method": "Dictionary",
+              "code": "synonyms = {'masculine': 'M', 'man': 'M', 'male': 'M'}\ndf['gender'] = df['gender'].map(synonyms)"
             },
             {
               "method": "Regex",
-              "code": "df['categoria'] = df['categoria'].replace(\n    to_replace=r'.*premium.*',\n    value='Premium',\n    regex=True)"
+              "code": "df['category'] = df['category'].replace(\n    to_replace=r'.*premium.*',\n    value='Premium',\n    regex=True)"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Validar Domínios",
+          "name": "Validate Domains",
           "solutions": [
             {
-              "method": "Lista de valores válidos",
-              "code": "valid_countries = ['PT', 'ES', 'FR', 'DE', 'IT']\ninvalid = df[~df['pais'].isin(valid_countries)]"
+              "method": "List of valid values",
+              "code": "valid_countries = ['PT', 'ES', 'FR', 'DE', 'IT']\ninvalid = df[~df['country'].isin(valid_countries)]"
             },
             {
               "method": "Regex",
               "code": "email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'\nvalid = df['email'].str.match(email_pattern)"
             },
             {
-              "method": "Corrigir inválidos",
+              "method": "Fix invalid",
               "options": [
-                "Remover registos",
-                "Marcar como missing",
-                "Criar categoria 'Other'"
+                "Remove records",
+                "Mark as missing",
+                "Create 'Other' category"
               ],
-              "code": "df.loc[~df['pais'].isin(valid_countries), 'pais'] = 'Other'"
+              "code": "df.loc[~df['country'].isin(valid_countries), 'country'] = 'Other'"
             }
           ]
         }
@@ -486,224 +486,224 @@
     },
     {
       "id": "P06",
-      "name": "Valores Inválidos (Business Rules)",
-      "objective": "Validar contra regras de negócio",
-      "severity": "MÉDIO",
-      "frequency": "Comum",
+      "name": "Invalid Values (Business Rules)",
+      "objective": "Validate against business rules",
+      "severity": "MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Aplicar Regras Min/Max",
+          "name": "Apply Min/Max Rules",
           "solutions": [
             {
-              "rule": "Idade 0-120",
-              "code": "df['idade_valida'] = (df['idade'] >= 0) & (df['idade'] <= 120)"
+              "rule": "Age 0-120",
+              "code": "df['age_valid'] = (df['age'] >= 0) & (df['age'] <= 120)"
             },
             {
-              "rule": "Percentagem 0-100",
-              "code": "df['pct_valida'] = (df['percentagem'] >= 0) & (df['percentagem'] <= 100)"
+              "rule": "Percentage 0-100",
+              "code": "df['pct_valid'] = (df['percentage'] >= 0) & (df['percentage'] <= 100)"
             },
             {
-              "rule": "Data não no futuro",
-              "code": "df['data_valida'] = df['data'] <= pd.Timestamp.now()"
+              "rule": "Date not in future",
+              "code": "df['date_valid'] = df['date'] <= pd.Timestamp.now()"
             },
             {
-              "rule": "Preço positivo",
-              "code": "df['preco_valido'] = df['preco'] > 0"
+              "rule": "Price positive",
+              "code": "df['price_valid'] = df['price'] > 0"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Corrigir Se Óbvio",
+          "name": "Fix If Obvious",
           "solutions": [
             {
-              "example": "Percentagem > 100 digitação",
+              "example": "Percentage > 100 typo",
               "code": "df.loc[df['pct'] > 100, 'pct'] = df.loc[df['pct'] > 100, 'pct'] / 100"
             },
             {
-              "example": "Data placeholder (00/00/0000)",
-              "code": "df.loc[df['data'] == '00/00/0000', 'data'] = pd.NaT"
+              "example": "Date placeholder (00/00/0000)",
+              "code": "df.loc[df['date'] == '00/00/0000', 'date'] = pd.NaT"
             },
             {
-              "example": "Negativos que deveriam ser positivos",
-              "code": "df['valor'] = df['valor'].abs()"
+              "example": "Negatives that should be positive",
+              "code": "df['value'] = df['value'].abs()"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Senão → Missing",
-          "code": "df.loc[invalid_mask, 'coluna'] = np.nan",
-          "note": "Depois aplicar P01 (Valores em Falta)"
+          "name": "Otherwise → Missing",
+          "code": "df.loc[invalid_mask, 'column'] = np.nan",
+          "note": "Then apply P01 (Missing Values)"
         }
       ]
     },
     {
       "id": "P07",
-      "name": "Escalas Diferentes (Feature Scaling)",
-      "objective": "Padronizar escalas de features numéricas",
-      "severity": "MÉDIO",
-      "frequency": "Muito comum",
+      "name": "Different Scales (Feature Scaling)",
+      "objective": "Standardize scales of numeric features",
+      "severity": "MEDIUM",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Ver se Modelo Precisa",
+          "name": "See If Model Needs It",
           "table": {
-            "KNN": "SIM (distância euclideana)",
-            "Linear Regression": "NÃO crítico",
-            "Decision Trees": "NÃO",
-            "Neural Networks": "SIM",
-            "SVM": "SIM",
-            "K-Means": "SIM",
-            "PCA": "SIM"
+            "KNN": "YES (euclidean distance)",
+            "Linear Regression": "NOT critical",
+            "Decision Trees": "NO",
+            "Neural Networks": "YES",
+            "SVM": "YES",
+            "K-Means": "YES",
+            "PCA": "YES"
           },
-          "rule": "Quando em dúvida, sempre faça scaling"
+          "rule": "When in doubt, always scale"
         },
         {
           "step": 2,
           "name": "Z-Score (StandardScaler)",
           "code": "from sklearn.preprocessing import StandardScaler\nscaler = StandardScaler()\ndf_scaled = scaler.fit_transform(df[['col1', 'col2']])",
           "formula": "(x - mean) / std",
-          "result": "média = 0, desvio padrão = 1",
-          "use_case": "Distribuição é normal"
+          "result": "mean = 0, standard deviation = 1",
+          "use_case": "Distribution is normal"
         },
         {
           "step": 3,
           "name": "MinMax (MinMaxScaler)",
           "code": "from sklearn.preprocessing import MinMaxScaler\nscaler = MinMaxScaler(feature_range=(0, 1))\ndf_scaled = scaler.fit_transform(df[['col1', 'col2']])",
           "formula": "(x - min) / (max - min)",
-          "result": "Valores entre 0 e 1",
-          "use_case": "Limites são conhecidos/importantes"
+          "result": "Values between 0 and 1",
+          "use_case": "Limits are known/important"
         },
         {
           "step": 4,
           "name": "Robust Scaling",
           "code": "from sklearn.preprocessing import RobustScaler\nscaler = RobustScaler()\ndf_scaled = scaler.fit_transform(df[['col1', 'col2']])",
           "formula": "(x - median) / IQR",
-          "use_case": "Há outliers"
+          "use_case": "There are outliers"
         },
         {
           "step": 5,
-          "name": "Fit no Treino, Aplicar no Teste",
-          "description": "CRUCIAL para evitar leakage (P14)",
-          "code_wrong": "X_test_scaled = scaler.fit_transform(X_test)  # ERRADO!",
-          "code_correct": "scaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n# Salvar para produção\nimport pickle\npickle.dump(scaler, open('scaler.pkl', 'wb'))"
+          "name": "Fit on Training, Apply on Test",
+          "description": "CRUCIAL to prevent leakage (P14)",
+          "code_wrong": "X_test_scaled = scaler.fit_transform(X_test)  # WRONG!",
+          "code_correct": "scaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n# Save for production\nimport pickle\npickle.dump(scaler, open('scaler.pkl', 'wb'))"
         }
       ]
     },
     {
       "id": "P08",
-      "name": "Categóricas - Encoding",
-      "objective": "Converter categorias em numérico para modelos",
-      "severity": "ALTO",
-      "frequency": "Muito comum",
+      "name": "Categorical - Encoding",
+      "objective": "Convert categories to numeric for models",
+      "severity": "HIGH",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Categorias Raras",
-          "code": "freq = df['categoria'].value_counts()\nrare = freq[freq / len(df) < 0.01].index.tolist()\nprint(freq)"
+          "name": "Detect Rare Categories",
+          "code": "freq = df['category'].value_counts()\nrare = freq[freq / len(df) < 0.01].index.tolist()\nprint(freq)"
         },
         {
           "step": 2,
-          "name": "Agrupar Outros",
+          "name": "Group Others",
           "solutions": [
             {
-              "method": "Por threshold",
-              "code": "df['categoria'] = df['categoria'].apply(\n    lambda x: x if x not in rare_categories else 'Other')"
+              "method": "By threshold",
+              "code": "df['category'] = df['category'].apply(\n    lambda x: x if x not in rare_categories else 'Other')"
             },
             {
               "method": "Top N categories",
-              "code": "top = df['categoria'].value_counts().head(10).index\ndf['categoria'] = df['categoria'].apply(\n    lambda x: x if x in top else 'Other')"
+              "code": "top = df['category'].value_counts().head(10).index\ndf['category'] = df['category'].apply(\n    lambda x: x if x in top else 'Other')"
             }
           ]
         },
         {
           "step": 3,
           "name": "One-Hot Encoding",
-          "description": "Quando: sem ordem natural (cores, categorias)",
-          "code": "df_encoded = pd.get_dummies(df, columns=['cor', 'categoria'], drop_first=True)",
-          "note": "drop_first: evita multicolinearidade perfeita (dummy trap)",
-          "sklearn": "from sklearn.preprocessing import OneHotEncoder\nencoder = OneHotEncoder(sparse_output=False, drop='first')\nencoded = encoder.fit_transform(df[['cor']])"
+          "description": "When: no natural order (colors, categories)",
+          "code": "df_encoded = pd.get_dummies(df, columns=['color', 'category'], drop_first=True)",
+          "note": "drop_first: avoids perfect multicollinearity (dummy trap)",
+          "sklearn": "from sklearn.preprocessing import OneHotEncoder\nencoder = OneHotEncoder(sparse_output=False, drop='first')\nencoded = encoder.fit_transform(df[['color']])"
         },
         {
           "step": 4,
           "name": "Ordinal Encoding",
-          "description": "Quando: há ordem natural (baixo < médio < alto)",
-          "code": "from sklearn.preprocessing import OrdinalEncoder\norder = [['baixo', 'médio', 'alto']]\nencoder = OrdinalEncoder(categories=order)\ndf['nivel_encoded'] = encoder.fit_transform(df[['nivel']])",
-          "result": "baixo=0, médio=1, alto=2"
+          "description": "When: there is natural order (low < medium < high)",
+          "code": "from sklearn.preprocessing import OrdinalEncoder\norder = [['low', 'medium', 'high']]\nencoder = OrdinalEncoder(categories=order)\ndf['level_encoded'] = encoder.fit_transform(df[['level']])",
+          "result": "low=0, medium=1, high=2"
         },
         {
           "step": 5,
           "name": "Target Encoding",
-          "description": "Substituir categoria pela média do target",
-          "code": "target_encoding = df.groupby('categoria')['target'].mean()\ndf['categoria_encoded'] = df['categoria'].map(target_encoding)",
-          "note_smoothing": "Com suavização para categorias raras:\nglobal_mean = df['target'].mean()\ncategory_counts = df['categoria'].value_counts()\nsmoothing = 1 / (1 + np.exp(-(category_counts - 1) / 100))\ntarget_smooth = (target_encoding * smoothing + global_mean * (1 - smoothing))"
+          "description": "Replace category with mean of target",
+          "code": "target_encoding = df.groupby('category')['target'].mean()\ndf['category_encoded'] = df['category'].map(target_encoding)",
+          "note_smoothing": "With smoothing for rare categories:\nglobal_mean = df['target'].mean()\ncategory_counts = df['category'].value_counts()\nsmoothing = 1 / (1 + np.exp(-(category_counts - 1) / 100))\ntarget_smooth = (target_encoding * smoothing + global_mean * (1 - smoothing))"
         },
         {
           "step": 6,
-          "name": "Fit no Treino",
-          "description": "Crítico: evitar leakage",
-          "code": "encoder = OneHotEncoder(sparse_output=False)\nX_train_encoded = encoder.fit_transform(X_train[['categoria']])\nX_test_encoded = encoder.transform(X_test[['categoria']])"
+          "name": "Fit on Training",
+          "description": "Critical: prevent leakage",
+          "code": "encoder = OneHotEncoder(sparse_output=False)\nX_train_encoded = encoder.fit_transform(X_train[['category']])\nX_test_encoded = encoder.transform(X_test[['category']])"
         }
       ]
     },
     {
       "id": "P09",
-      "name": "Classes Desbalanceadas",
-      "objective": "Lidar com distribuições desiguais de classes",
-      "severity": "ALTO",
-      "frequency": "Muito comum",
+      "name": "Imbalanced Classes",
+      "objective": "Deal with unequal class distributions",
+      "severity": "HIGH",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Medir Distribuição",
-          "code": "distribution = df['target'].value_counts()\nproportions = df['target'].value_counts(normalize=True)\nimbalance_ratio = distribution.max() / distribution.min()\nprint(f'Razão: {imbalance_ratio:.2f}')",
+          "name": "Measure Distribution",
+          "code": "distribution = df['target'].value_counts()\nproportions = df['target'].value_counts(normalize=True)\nimbalance_ratio = distribution.max() / distribution.min()\nprint(f'Ratio: {imbalance_ratio:.2f}')",
           "interpretation": {
-            "1.5": "Balanceado",
-            "1.5-3": "Moderadamente desbalanceado",
-            ">3": "Fortemente desbalanceado"
+            "1.5": "Balanced",
+            "1.5-3": "Moderately imbalanced",
+            ">3": "Strongly imbalanced"
           }
         },
         {
           "step": 2,
-          "name": "Recolher Dados ou Reamostrar",
+          "name": "Collect Data or Resample",
           "solutions": [
             {
               "method": "Upsampling (Oversampling)",
               "code": "from sklearn.utils import resample\ndf_majority = df[df['target'] == 0]\ndf_minority = df[df['target'] == 1]\ndf_minority_up = resample(df_minority, replace=True, n_samples=len(df_majority))\ndf_balanced = pd.concat([df_majority, df_minority_up])",
-              "pros": "Simples",
-              "cons": "Cria dados duplicados, overfitting"
+              "pros": "Simple",
+              "cons": "Creates duplicate data, overfitting"
             },
             {
               "method": "Downsampling (Undersampling)",
               "code": "df_majority_down = resample(df_majority, replace=False, n_samples=len(df_minority))\ndf_balanced = pd.concat([df_majority_down, df_minority])",
-              "pros": "Reduz dados inúteis",
-              "cons": "Perde informação"
+              "pros": "Reduces useless data",
+              "cons": "Loses information"
             },
             {
               "method": "SMOTE",
               "code": "from imblearn.over_sampling import SMOTE\nsmote = SMOTE(sampling_strategy=0.5)\nX_resampled, y_resampled = smote.fit_resample(X, y)",
-              "description": "Cria exemplos sintéticos da classe minoritária",
-              "pros": "Melhor que upsampling simples",
-              "cons": "Mais complexo"
+              "description": "Creates synthetic examples of minority class",
+              "pros": "Better than simple upsampling",
+              "cons": "More complex"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Usar Pesos",
+          "name": "Use Weights",
           "code": "class_weights = {0: 1, 1: len(df[df['target']==0]) / len(df[df['target']==1])}\nrf = RandomForestClassifier(class_weight='balanced')",
-          "sklearn": "O modelo aprende a penalizar erros da classe minoritária"
+          "sklearn": "Model learns to penalize minority class errors"
         },
         {
           "step": 4,
-          "name": "Usar Métricas Adequadas",
-          "description": "NÃO use acurácia em dados desbalanceados",
+          "name": "Use Appropriate Metrics",
+          "description": "DO NOT use accuracy on imbalanced data",
           "correct_metrics": [
-            "F1: balanço entre precisão e recall",
-            "ROC-AUC: não afetado pelo desequilíbrio",
-            "Matriz de confusão: ver TP vs FP"
+            "F1: balance between precision and recall",
+            "ROC-AUC: not affected by imbalance",
+            "Confusion matrix: see TP vs FP"
           ],
           "code": "from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score\nf1 = f1_score(y_true, y_pred)\nroc_auc = roc_auc_score(y_true, y_pred_proba)"
         }
@@ -711,36 +711,36 @@
     },
     {
       "id": "P10",
-      "name": "Enviesamento (Bias)",
-      "objective": "Identificar e mitigar vieses sistemáticos",
-      "severity": "CRÍTICO",
-      "frequency": "Comum",
+      "name": "Bias",
+      "objective": "Identify and mitigate systematic biases",
+      "severity": "CRITICAL",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Avaliar por Grupo",
-          "code": "for group in df['genero'].unique():\n    subset = df[df['genero'] == group]\n    print(f'{group}: média={subset[\"target\"].mean()}')",
-          "note": "Grupos sensíveis: género, idade, raça, localização"
+          "name": "Evaluate by Group",
+          "code": "for group in df['gender'].unique():\n    subset = df[df['gender'] == group]\n    print(f'{group}: mean={subset[\"target\"].mean()}')",
+          "note": "Sensitive groups: gender, age, race, location"
         },
         {
           "step": 2,
-          "name": "Teste Estatístico",
-          "code": "from scipy.stats import chi2_contingency\ncontingency = pd.crosstab(df['genero'], df['target'])\nchi2, p_value, dof, expected = chi2_contingency(contingency)\nif p_value < 0.05:\n    print('Viés significativo detectado')"
+          "name": "Statistical Test",
+          "code": "from scipy.stats import chi2_contingency\ncontingency = pd.crosstab(df['gender'], df['target'])\nchi2, p_value, dof, expected = chi2_contingency(contingency)\nif p_value < 0.05:\n    print('Significant bias detected')"
         },
         {
           "step": 3,
-          "name": "Rever Coleta",
+          "name": "Review Collection",
           "issues": [
-            "Viés de seleção: amostra não representa população",
-            "Dados só de um canal",
-            "Período específico não representativo",
-            "Grupos sub/sobre-representados"
+            "Selection bias: sample doesn't represent population",
+            "Data only from one channel",
+            "Specific period not representative",
+            "Groups sub/over-represented"
           ],
-          "solution": "Recolher dados adicionais ou reponderar"
+          "solution": "Collect additional data or reweight"
         },
         {
           "step": 4,
-          "name": "Balancear Grupos",
+          "name": "Balance Groups",
           "solutions": [
             {
               "method": "Stratified sampling",
@@ -748,132 +748,132 @@
             },
             {
               "method": "Resampling by group",
-              "code": "df_balanced = df.groupby('genero').apply(\n    lambda x: x.sample(n=min_group_size, random_state=42)\n).reset_index(drop=True)"
+              "code": "df_balanced = df.groupby('gender').apply(\n    lambda x: x.sample(n=min_group_size, random_state=42)\n).reset_index(drop=True)"
             }
           ]
         },
         {
           "step": 5,
-          "name": "Documentar Limitações",
+          "name": "Document Limitations",
           "checklist": [
-            "Dados históricos contêm viés X?",
-            "População para qual modelo é válido?",
-            "Quando desempenho se degrada?",
-            "Monitorar fairness em produção?"
+            "Does historical data contain bias X?",
+            "Population for which model is valid?",
+            "When does performance degrade?",
+            "Monitor fairness in production?"
           ]
         }
       ]
     },
     {
       "id": "P11",
-      "name": "Features Irrelevantes",
-      "objective": "Remover features que não adicionam valor",
-      "severity": "MÉDIO",
-      "frequency": "Comum",
+      "name": "Irrelevant Features",
+      "objective": "Remove features that don't add value",
+      "severity": "MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Constantes",
+          "name": "Detect Constants",
           "code": "constant_cols = [col for col in df.columns if df[col].nunique() == 1]",
-          "quasi_constant": "for col in df.columns:\n    top_freq = df[col].value_counts().iloc[0] / len(df)\n    if top_freq > 0.99:\n        print(f'{col}: {top_freq:.1%} um valor')"
+          "quasi_constant": "for col in df.columns:\n    top_freq = df[col].value_counts().iloc[0] / len(df)\n    if top_freq > 0.99:\n        print(f'{col}: {top_freq:.1%} one value')"
         },
         {
           "step": 2,
-          "name": "Remover Colunas Inúteis",
+          "name": "Remove Useless Columns",
           "code": "df = df.drop(columns=constant_cols + quasi_constant_cols)"
         }
       ]
     },
     {
       "id": "P12",
-      "name": "IDs Como Features",
-      "objective": "Eliminar identificadores não preditivos",
-      "severity": "MÉDIO",
-      "frequency": "Muito comum",
+      "name": "IDs As Features",
+      "objective": "Eliminate non-predictive identifiers",
+      "severity": "MEDIUM",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Identificar IDs",
+          "name": "Identify IDs",
           "code": "id_candidates = [col for col in df.columns if 'id' in col.lower()]\nfor col in df.columns:\n    if df[col].nunique() == len(df):\n        id_candidates.append(col)"
         },
         {
           "step": 2,
-          "name": "Remover",
-          "code": "df_modelo = df.drop(columns=['id', 'customer_id', 'transaction_id'])",
-          "note": "Manter índice se necessário para rastreabilidade"
+          "name": "Remove",
+          "code": "df_model = df.drop(columns=['id', 'customer_id', 'transaction_id'])",
+          "note": "Keep index if needed for traceability"
         }
       ]
     },
     {
       "id": "P13",
-      "name": "Redundância e Multicolinearidade",
-      "objective": "Remover features correlacionadas",
-      "severity": "MÉDIO",
-      "frequency": "Comum",
+      "name": "Redundancy and Multicollinearity",
+      "objective": "Remove correlated features",
+      "severity": "MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Correlação",
+          "name": "Detect Correlation",
           "solutions": [
             {
-              "method": "Matriz correlação",
+              "method": "Correlation matrix",
               "code": "corr_matrix = df.corr()\nhigh_corr = []\nfor i in range(len(corr_matrix.columns)):\n    for j in range(i+1, len(corr_matrix.columns)):\n        if abs(corr_matrix.iloc[i, j]) > 0.95:\n            high_corr.append((corr_matrix.columns[i], corr_matrix.columns[j]))"
             },
             {
               "method": "VIF (Variance Inflation Factor)",
               "code": "from statsmodels.stats.outliers_influence import variance_inflation_factor\nvif_data = pd.DataFrame()\nvif_data['VIF'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]",
-              "note": "VIF > 10: multicolinearidade problemática"
+              "note": "VIF > 10: problematic multicollinearity"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Remover Duplicadas",
+          "name": "Remove Duplicates",
           "code": "if corr_matrix.loc['feature1', 'feature2'] > 0.99:\n    df = df.drop(columns=['feature2'])"
         },
         {
           "step": 3,
-          "name": "Manter Mais Interpretável",
-          "code": "# Se 'preco' e 'preco_norm' têm r=0.98\ndf = df.drop(columns=['preco_norm'])  # Manter 'preco'",
-          "alternative": "Ou usar PCA se interpretabilidade não é crítica:\nfrom sklearn.decomposition import PCA\npca = PCA(n_components=10)\nX_pca = pca.fit_transform(X)"
+          "name": "Keep More Interpretable",
+          "code": "# If 'price' and 'price_norm' have r=0.98\ndf = df.drop(columns=['price_norm'])  # Keep 'price'",
+          "alternative": "Or use PCA if interpretability is not critical:\nfrom sklearn.decomposition import PCA\npca = PCA(n_components=10)\nX_pca = pca.fit_transform(X)"
         }
       ]
     },
     {
       "id": "P14",
       "name": "Data Leakage",
-      "objective": "Evitar que informação do futuro 'vaze' para treino",
-      "severity": "CRÍTICO",
-      "frequency": "Comum em iniciantes",
+      "objective": "Prevent information from the future from leaking into training",
+      "severity": "CRITICAL",
+      "frequency": "Common among beginners",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Features do Futuro",
+          "name": "Detect Future Features",
           "red_flags": [
-            "Feature calculada a partir do target",
-            "Informação que só existe após prever",
-            "Dados agregados que incluem eventos futuros",
-            "Timestamps posteriores aos eventos"
+            "Feature calculated from target",
+            "Information that only exists after prediction",
+            "Aggregated data that includes future events",
+            "Timestamps after events"
           ],
           "examples": [
-            "Usar 'lucro' quando target é 'venda'",
-            "Usar 'resultado_auditoria' se modelo prediz 'risco'",
-            "Usar notas finais para prever dropout"
+            "Using 'profit' when target is 'sale'",
+            "Using 'audit_result' if model predicts 'risk'",
+            "Using final grades to predict dropout"
           ],
-          "detection": "Correlação > 0.95 com target é red flag"
+          "detection": "Correlation > 0.95 with target is red flag"
         },
         {
           "step": 2,
-          "name": "Remover ou Cortar Temporalmente",
+          "name": "Remove or Cut Temporally",
           "solutions": [
             {
-              "method": "Remover feature",
-              "code": "df = df.drop(columns=['feature_future'])"
+              "method": "Remove feature",
+              "code": "df = df.drop(columns=['future_feature'])"
             },
             {
-              "method": "Cortar temporalmente",
-              "code": "df_cut = df[df['data'] <= data_limite]",
-              "example": "Prever churn mês M usando só dados até fim mês M"
+              "method": "Cut temporally",
+              "code": "df_cut = df[df['date'] <= date_limit]",
+              "example": "Predict churn month M using only data until end month M"
             }
           ]
         }
@@ -882,58 +882,58 @@
     {
       "id": "P15",
       "name": "Joins",
-      "objective": "Combinar dados de múltiplas fontes corretamente",
-      "severity": "ALTO",
-      "frequency": "Muito comum",
+      "objective": "Combine data from multiple sources correctly",
+      "severity": "HIGH",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Validar Chaves",
+          "name": "Validate Keys",
           "code": "assert df_left['id'].is_unique\noverlap = df_left['id'].isin(df_right['id']).sum()\nprint(f'Overlap: {overlap}/{len(df_left)}')"
         },
         {
           "step": 2,
-          "name": "Executar Left Join",
+          "name": "Execute Left Join",
           "solutions": [
             {
-              "method": "Simples",
+              "method": "Simple",
               "code": "df_merged = df_left.merge(df_right, on='id', how='left')"
             },
             {
-              "method": "Múltiplas colunas",
-              "code": "df_merged = df_left.merge(df_right, on=['id', 'data'], how='left')"
+              "method": "Multiple columns",
+              "code": "df_merged = df_left.merge(df_right, on=['id', 'date'], how='left')"
             },
             {
-              "method": "Colunas com nomes diferentes",
+              "method": "Different column names",
               "code": "df_merged = df_left.merge(df_right, left_on='customer_id', right_on='cust_id', how='left')"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Detetar Explosão ou Perda",
+          "name": "Detect Explosion or Loss",
           "solutions": [
             {
-              "issue": "Explosão (um-para-muitos)",
-              "code": "before = len(df_left)\nafter = len(df_merged)\nif after > before:\n    print(f'Explosão: {before} → {after}')\n    print(df_right['id'].value_counts().sort_values(ascending=False).head())"
+              "issue": "Explosion (one-to-many)",
+              "code": "before = len(df_left)\nafter = len(df_merged)\nif after > before:\n    print(f'Explosion: {before} → {after}')\n    print(df_right['id'].value_counts().sort_values(ascending=False).head())"
             },
             {
-              "issue": "Perda (não encontrados)",
-              "code": "missing = df_merged.isnull().sum()\nnot_found = df_left[~df_left['id'].isin(df_right['id'])]\nprint(f'Não encontrados: {len(not_found)}')"
+              "issue": "Loss (not found)",
+              "code": "missing = df_merged.isnull().sum()\nnot_found = df_left[~df_left['id'].isin(df_right['id'])]\nprint(f'Not found: {len(not_found)}')"
             }
           ]
         },
         {
           "step": 4,
-          "name": "Agregar ou Corrigir",
+          "name": "Aggregate or Fix",
           "solutions": [
             {
-              "issue": "Se explosão",
-              "code": "df_agg = df_merged.groupby('id').agg({\n    'valor': 'sum',\n    'data': 'max'\n}).reset_index()"
+              "issue": "If explosion",
+              "code": "df_agg = df_merged.groupby('id').agg({\n    'value': 'sum',\n    'date': 'max'\n}).reset_index()"
             },
             {
-              "issue": "Se perda",
-              "code": "# Investigar: 'João' vs 'Joao'\nnot_found['id_clean'] = not_found['id'].str.lower().str.strip()\n# Retry join"
+              "issue": "If loss",
+              "code": "# Investigate: 'John' vs 'Jon'\nnot_found['id_clean'] = not_found['id'].str.lower().str.strip()\n# Retry join"
             }
           ]
         }
@@ -941,186 +941,186 @@
     },
     {
       "id": "P16",
-      "name": "Séries Temporais",
-      "objective": "Tratar dados com dimensão temporal",
-      "severity": "ALTO",
-      "frequency": "Comum em domínios específicos",
+      "name": "Time Series",
+      "objective": "Handle data with temporal dimension",
+      "severity": "HIGH",
+      "frequency": "Common in specific domains",
       "branches": [
         {
           "step": 1,
-          "name": "Normalizar Timezone",
+          "name": "Normalize Timezone",
           "code": "df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize('Europe/Lisbon')\ndf['timestamp_utc'] = df['timestamp'].dt.tz_convert('UTC')"
         },
         {
           "step": 2,
-          "name": "Ordenar por Tempo",
+          "name": "Order by Time",
           "code": "df = df.sort_values('timestamp').reset_index(drop=True)\ndf = df.drop_duplicates(subset=['id', 'timestamp'], keep='first')"
         },
         {
           "step": 3,
-          "name": "Uniformizar Frequência",
-          "code": "df_ts = df.set_index('timestamp')\ndf_resampled = df_ts.resample('D').mean()  # 'H': hora, 'D': dia, 'M': mês\ndf_resampled = df_resampled.fillna(method='ffill')"
+          "name": "Uniformize Frequency",
+          "code": "df_ts = df.set_index('timestamp')\ndf_resampled = df_ts.resample('D').mean()  # 'H': hour, 'D': day, 'M': month\ndf_resampled = df_resampled.fillna(method='ffill')"
         },
         {
           "step": 4,
-          "name": "Tratar Gaps",
+          "name": "Handle Gaps",
           "solutions": [
             {
-              "method": "Detetar gaps",
+              "method": "Detect gaps",
               "code": "df['time_diff'] = df['timestamp'].diff()\ngaps = df[df['time_diff'] > pd.Timedelta(days=1)]"
             },
             {
-              "method": "Remover período",
+              "method": "Remove period",
               "code": "df_clean = df[df['timestamp'] < gap_start]"
             },
             {
-              "method": "Interpolar",
-              "code": "df['valor'] = df['valor'].interpolate(method='linear')"
+              "method": "Interpolate",
+              "code": "df['value'] = df['value'].interpolate(method='linear')"
             },
             {
               "method": "Forward fill",
-              "code": "df['valor'] = df['valor'].fillna(method='ffill')"
+              "code": "df['value'] = df['value'].fillna(method='ffill')"
             }
           ]
         },
         {
           "step": 5,
-          "name": "Split Temporal",
-          "description": "NUNCA aleatório em séries temporais",
+          "name": "Temporal Split",
+          "description": "NEVER random on time series",
           "code": "split_date = pd.Timestamp('2023-01-01')\ndf_train = df[df['timestamp'] < split_date]\ndf_test = df[df['timestamp'] >= split_date]",
-          "alternative": "ou por proporção:\nsplit_idx = int(0.8 * len(df))\ndf_train = df.iloc[:split_idx]\ndf_test = df.iloc[split_idx:]"
+          "alternative": "or by proportion:\nsplit_idx = int(0.8 * len(df))\ndf_train = df.iloc[:split_idx]\ndf_test = df.iloc[split_idx:]"
         }
       ]
     },
     {
       "id": "P17",
-      "name": "Dados Desatualizados / Drift",
-      "objective": "Detectar mudanças de distribuição ao longo do tempo",
-      "severity": "ALTO",
-      "frequency": "Comum em produção",
+      "name": "Stale Data / Drift",
+      "objective": "Detect distribution changes over time",
+      "severity": "HIGH",
+      "frequency": "Common in production",
       "branches": [
         {
           "step": 1,
-          "name": "Comparar Distribuições",
-          "code": "df['period'] = df['timestamp'].dt.to_period('M')\nfor period in df['period'].unique():\n    subset = df[df['period'] == period]\n    print(f'{period}: mean={subset[\"valor\"].mean():.2f}')",
-          "test": "from scipy.stats import ks_2samp\nstat, p = ks_2samp(period1['valor'], period2['valor'])\nif p < 0.05:\n    print('Drift significativo detectado')"
+          "name": "Compare Distributions",
+          "code": "df['period'] = df['timestamp'].dt.to_period('M')\nfor period in df['period'].unique():\n    subset = df[df['period'] == period]\n    print(f'{period}: mean={subset[\"value\"].mean():.2f}')",
+          "test": "from scipy.stats import ks_2samp\nstat, p = ks_2samp(period1['value'], period2['value'])\nif p < 0.05:\n    print('Significant drift detected')"
         },
         {
           "step": 2,
-          "name": "Recolher Dados Recentes",
+          "name": "Collect Recent Data",
           "code": "df_recent = df[df['timestamp'] >= pd.Timestamp('2024-01-01')]"
         },
         {
           "step": 3,
-          "name": "Re-treinar",
-          "code": "modelo_novo = RandomForestClassifier()\nmodelo_novo.fit(X_recent, y_recent)",
-          "frequency": "Semanal, mensal, conforme drift detectado",
-          "monitoring": "Se performance cai > 10%, re-treinar"
+          "name": "Re-train",
+          "code": "model_new = RandomForestClassifier()\nmodel_new.fit(X_recent, y_recent)",
+          "frequency": "Weekly, monthly, as drift is detected",
+          "monitoring": "If performance drops > 10%, re-train"
         }
       ]
     },
     {
       "id": "P18",
-      "name": "Dados Ruidosos",
-      "objective": "Reduzir ruído não informativo",
-      "severity": "MÉDIO",
-      "frequency": "Comum",
+      "name": "Noisy Data",
+      "objective": "Reduce non-informative noise",
+      "severity": "MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Suavizar / Filtrar",
+          "name": "Smooth / Filter",
           "solutions": [
             {
               "method": "Moving average",
-              "code": "df['valor_smooth'] = df['valor'].rolling(window=7).mean()"
+              "code": "df['value_smooth'] = df['value'].rolling(window=7).mean()"
             },
             {
               "method": "Exponential weighted",
-              "code": "df['valor_ewa'] = df['valor'].ewm(span=7).mean()"
+              "code": "df['value_ewa'] = df['value'].ewm(span=7).mean()"
             },
             {
               "method": "Savitzky-Golay",
-              "code": "from scipy.signal import savgol_filter\ndf['valor_smooth'] = savgol_filter(df['valor'], window_length=7, polyorder=2)"
+              "code": "from scipy.signal import savgol_filter\ndf['value_smooth'] = savgol_filter(df['value'], window_length=7, polyorder=2)"
             },
             {
               "method": "Kalman filter",
-              "code": "from pykalman import KalmanFilter\nkf = KalmanFilter()\nstate_mean, _ = kf.filter(df['valor'].values)\ndf['valor_filtered'] = state_mean"
+              "code": "from pykalman import KalmanFilter\nkf = KalmanFilter()\nstate_mean, _ = kf.filter(df['value'].values)\ndf['value_filtered'] = state_mean"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Remover Variáveis Baixa Qualidade",
+          "name": "Remove Low Quality Variables",
           "code": "correlations = df.corr()['target'].abs().sort_values(ascending=False)\nlow_corr = correlations[correlations < 0.05].index.tolist()\ndf = df.drop(columns=low_corr)"
         }
       ]
     },
     {
       "id": "P19",
-      "name": "Texto",
-      "objective": "Processar dados textuais para modelos",
-      "severity": "ALTO",
-      "frequency": "Comum em NLP",
+      "name": "Text",
+      "objective": "Process textual data for models",
+      "severity": "HIGH",
+      "frequency": "Common in NLP",
       "branches": [
         {
           "step": 1,
-          "name": "Limpeza Básica",
-          "code": "import re\ndef clean_text(text):\n    text = text.lower()\n    text = re.sub(r'http\\S+|www.\\S+', '', text)\n    text = re.sub(r'\\S+@\\S+', '', text)\n    text = re.sub(r'\\d+', '', text)\n    text = re.sub(r'[^\\w\\s]', '', text)\n    return ' '.join(text.split())\ndf['texto_limpo'] = df['texto'].apply(clean_text)"
+          "name": "Basic Cleaning",
+          "code": "import re\ndef clean_text(text):\n    text = text.lower()\n    text = re.sub(r'http\\S+|www.\\S+', '', text)\n    text = re.sub(r'\\S+@\\S+', '', text)\n    text = re.sub(r'\\d+', '', text)\n    text = re.sub(r'[^\\w\\s]', '', text)\n    return ' '.join(text.split())\ndf['text_clean'] = df['text'].apply(clean_text)"
         },
         {
           "step": 2,
-          "name": "Resolver Idioma",
-          "code": "from langdetect import detect_langs\ndf['idioma'] = df['texto'].apply(lambda x: detect_langs(x)[0].lang)",
+          "name": "Resolve Language",
+          "code": "from langdetect import detect_langs\ndf['language'] = df['text'].apply(lambda x: detect_langs(x)[0].lang)",
           "options": [
-            "Filtrar por idioma",
-            "Traduzir"
+            "Filter by language",
+            "Translate"
           ]
         },
         {
           "step": 3,
-          "name": "TF-IDF ou Embeddings",
+          "name": "TF-IDF or Embeddings",
           "solutions": [
             {
               "method": "TF-IDF",
-              "code": "from sklearn.feature_extraction.text import TfidfVectorizer\nvectorizer = TfidfVectorizer(max_features=100)\nX_tfidf = vectorizer.fit_transform(df['texto_limpo'])"
+              "code": "from sklearn.feature_extraction.text import TfidfVectorizer\nvectorizer = TfidfVectorizer(max_features=100)\nX_tfidf = vectorizer.fit_transform(df['text_clean'])"
             },
             {
               "method": "Word2Vec",
-              "code": "from gensim.models import Word2Vec\nmodel = Word2Vec(sentences=[doc.split() for doc in df['texto']], vector_size=100)\nX_w2v = np.array([np.mean([model.wv[w] for w in doc.split() if w in model.wv], axis=0) for doc in df['texto']])"
+              "code": "from gensim.models import Word2Vec\nmodel = Word2Vec(sentences=[doc.split() for doc in df['text']], vector_size=100)\nX_w2v = np.array([np.mean([model.wv[w] for w in doc.split() if w in model.wv], axis=0) for doc in df['text']])"
             },
             {
               "method": "Transformers (BERT)",
-              "code": "from sentence_transformers import SentenceTransformer\nmodel = SentenceTransformer('distiluse-base-multilingual-cased-v2')\nembeddings = model.encode(df['texto_limpo'].tolist())"
+              "code": "from sentence_transformers import SentenceTransformer\nmodel = SentenceTransformer('distiluse-base-multilingual-cased-v2')\nembeddings = model.encode(df['text_clean'].tolist())"
             }
           ]
         },
         {
           "step": 4,
-          "name": "Chunking se Longo",
-          "code": "def chunk_text(text, chunk_size=512):\n    words = text.split()\n    return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]\ndf['chunks'] = df['texto'].apply(chunk_text)"
+          "name": "Chunking if Long",
+          "code": "def chunk_text(text, chunk_size=512):\n    words = text.split()\n    return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]\ndf['chunks'] = df['text'].apply(chunk_text)"
         }
       ]
     },
     {
       "id": "P20",
-      "name": "Imagens",
-      "objective": "Preparar dados de imagem para modelos",
-      "severity": "ALTO",
-      "frequency": "Comum em CV",
+      "name": "Images",
+      "objective": "Prepare image data for models",
+      "severity": "HIGH",
+      "frequency": "Common in CV",
       "branches": [
         {
           "step": 1,
-          "name": "Validar Ficheiros",
+          "name": "Validate Files",
           "code": "import os\nfrom PIL import Image\ninvalid = []\nfor img_path in df['image_path']:\n    try:\n        img = Image.open(img_path)\n        img.verify()\n    except Exception as e:\n        invalid.append((img_path, str(e)))\ndf = df[~df['image_path'].isin([x[0] for x in invalid])]"
         },
         {
           "step": 2,
-          "name": "Padronizar Tamanho",
+          "name": "Standardize Size",
           "code": "def resize_image(img_path, size=(224, 224)):\n    img = Image.open(img_path)\n    img.thumbnail(size)\n    padded = Image.new('RGB', size, (0, 0, 0))\n    offset = ((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2)\n    padded.paste(img, offset)\n    return np.array(padded)\ndf['image_array'] = df['image_path'].apply(lambda x: resize_image(x))"
         },
         {
           "step": 3,
-          "name": "Normalizar Pixels",
+          "name": "Normalize Pixels",
           "solutions": [
             {
               "method": "[0, 1]",
@@ -1138,107 +1138,107 @@
         },
         {
           "step": 4,
-          "name": "Augmentação (Treino Apenas)",
+          "name": "Augmentation (Training Only)",
           "code": "from albumentations import Compose, HorizontalFlip, Rotate\naugmentation = Compose([HorizontalFlip(p=0.5), Rotate(limit=15, p=0.5)])\nX_train_aug = np.array([augmentation(image=img)['image'] for img in X_train])"
         },
         {
           "step": 5,
-          "name": "Split Sem Leakage",
+          "name": "Split Without Leakage",
           "code": "unique_products = df['product_id'].unique()\ntrain_prod, test_prod = train_test_split(unique_products, test_size=0.2)\ndf_train = df[df['product_id'].isin(train_prod)]\ndf_test = df[df['product_id'].isin(test_prod)]"
         }
       ]
     },
     {
       "id": "P21",
-      "name": "Áudio",
-      "objective": "Preparar dados de áudio para modelos",
-      "severity": "ALTO",
-      "frequency": "Comum em ASR/Speech",
+      "name": "Audio",
+      "objective": "Prepare audio data for models",
+      "severity": "HIGH",
+      "frequency": "Common in ASR/Speech",
       "branches": [
         {
           "step": 1,
-          "name": "Padronizar Sample Rate",
+          "name": "Standardize Sample Rate",
           "code": "import librosa\ndef load_resample(audio_path, target_sr=16000):\n    y, sr = librosa.load(audio_path, sr=None)\n    if sr != target_sr:\n        y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)\n    return y, target_sr\ndf['audio_signal'] = df['audio_path'].apply(lambda x: load_resample(x)[0])"
         },
         {
           "step": 2,
-          "name": "Reduzir Ruído",
+          "name": "Reduce Noise",
           "code": "import noisereduce as nr\ndef reduce_noise(signal):\n    return nr.reduce_noise(y=signal, sr=16000)\ndf['audio_denoised'] = df['audio_signal'].apply(reduce_noise)"
         },
         {
           "step": 3,
-          "name": "Segmentar",
+          "name": "Segment",
           "code": "def segment_audio(signal, sr=16000, duration=3):\n    sample_length = sr * duration\n    return [signal[i:i+sample_length] for i in range(0, len(signal), sample_length)]\ndf['audio_segments'] = df['audio_signal'].apply(segment_audio)"
         },
         {
           "step": 4,
-          "name": "Extrair Features",
+          "name": "Extract Features",
           "code": "def extract_features(signal, sr=16000):\n    mel_spec = librosa.feature.melspectrogram(y=signal, sr=sr)\n    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)\n    mfcc = librosa.feature.mfcc(y=signal, sr=sr, n_mfcc=13)\n    zcr = librosa.feature.zero_crossing_rate(signal)\n    return mel_spec_db, mfcc, zcr\ndf['features'] = df['audio_signal'].apply(extract_features)"
         },
         {
           "step": 5,
-          "name": "Split Sem Leakage",
+          "name": "Split Without Leakage",
           "code": "train_speakers = df['speaker_id'].unique()[:int(0.8*df['speaker_id'].nunique())]\ndf_train = df[df['speaker_id'].isin(train_speakers)]\ndf_test = df[~df['speaker_id'].isin(train_speakers)]"
         }
       ]
     },
     {
       "id": "P22",
-      "name": "Integridade Referencial",
-      "objective": "Garantir referência correta entre tabelas",
-      "severity": "MÉDIO",
-      "frequency": "Comum em BD",
+      "name": "Referential Integrity",
+      "objective": "Ensure correct reference between tables",
+      "severity": "MEDIUM",
+      "frequency": "Common in DB",
       "branches": [
         {
           "step": 1,
-          "name": "Validar PK/FK",
-          "code": "assert df['id'].is_unique\nvalid_ids = df_ref['id'].unique()\ndf_check = df[~df['fk_id'].isin(valid_ids)]\nif len(df_check) > 0:\n    print(f'{len(df_check)} FKs inválidas')"
+          "name": "Validate PK/FK",
+          "code": "assert df['id'].is_unique\nvalid_ids = df_ref['id'].unique()\ndf_check = df[~df['fk_id'].isin(valid_ids)]\nif len(df_check) > 0:\n    print(f'{len(df_check)} invalid FKs')"
         },
         {
           "step": 2,
-          "name": "Corrigir Chaves",
+          "name": "Fix Keys",
           "solutions": [
             {
-              "method": "Remover órfãos",
+              "method": "Remove orphans",
               "code": "df = df[df['fk_id'].isin(valid_ids)]"
             },
             {
-              "method": "Marcar missing",
+              "method": "Mark missing",
               "code": "df.loc[~df['fk_id'].isin(valid_ids), 'fk_id'] = np.nan"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Documentar Match Rate",
+          "name": "Document Match Rate",
           "code": "match_rate = df['fk_id'].isin(valid_ids).sum() / len(df)\nprint(f'Match rate: {match_rate:.1%}')",
-          "note": "Se < 95%, investigar discrepâncias"
+          "note": "If < 95%, investigate discrepancies"
         }
       ]
     },
     {
       "id": "P23",
-      "name": "Frequências Temporais Misturadas",
-      "objective": "Uniformizar frequências de amostragem",
-      "severity": "MÉDIO",
-      "frequency": "Comum em séries temporais",
+      "name": "Mixed Temporal Frequencies",
+      "objective": "Uniformize sampling frequencies",
+      "severity": "MEDIUM",
+      "frequency": "Common in time series",
       "branches": [
         {
           "step": 1,
           "name": "Resample",
-          "code": "df_weekly = df.set_index('data').resample('W').mean()\ndf_daily = df.set_index('data').resample('D').ffill()"
+          "code": "df_weekly = df.set_index('date').resample('W').mean()\ndf_daily = df.set_index('date').resample('D').ffill()"
         },
         {
           "step": 2,
-          "name": "Agregar ou Interpolar",
+          "name": "Aggregate or Interpolate",
           "solutions": [
             {
-              "method": "Agregar",
-              "code": "df_agg = df.set_index('data').resample('W').agg({\n    'vendas': 'sum',\n    'temperatura': 'mean'\n})"
+              "method": "Aggregate",
+              "code": "df_agg = df.set_index('date').resample('W').agg({\n    'sales': 'sum',\n    'temperature': 'mean'\n})"
             },
             {
-              "method": "Interpolar",
-              "code": "df_interp = df.set_index('data').resample('D').interpolate()"
+              "method": "Interpolate",
+              "code": "df_interp = df.set_index('date').resample('D').interpolate()"
             }
           ]
         }
@@ -1246,101 +1246,101 @@
     },
     {
       "id": "P24",
-      "name": "Gaps Temporais",
-      "objective": "Lidar com períodos sem dados",
-      "severity": "MÉDIO",
-      "frequency": "Comum",
+      "name": "Temporal Gaps",
+      "objective": "Handle periods without data",
+      "severity": "MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Interpolar",
+          "name": "Interpolate",
           "solutions": [
             {
               "method": "Linear",
-              "code": "df['valor'] = df['valor'].interpolate(method='linear')"
+              "code": "df['value'] = df['value'].interpolate(method='linear')"
             },
             {
-              "method": "Cúbica",
-              "code": "df['valor'] = df['valor'].interpolate(method='cubic')"
+              "method": "Cubic",
+              "code": "df['value'] = df['value'].interpolate(method='cubic')"
             },
             {
-              "method": "Com limite",
-              "code": "df['valor'] = df['valor'].interpolate(limit=7)"
+              "method": "With limit",
+              "code": "df['value'] = df['value'].interpolate(limit=7)"
             }
           ]
         },
         {
           "step": 2,
-          "name": "Ou Manter Missing",
-          "code": "df['valor'] = df['valor'].where(\n    df['timestamp'].diff() < pd.Timedelta(days=7),\n    np.nan\n)"
+          "name": "Or Keep Missing",
+          "code": "df['value'] = df['value'].where(\n    df['timestamp'].diff() < pd.Timedelta(days=7),\n    np.nan\n)"
         }
       ]
     },
     {
       "id": "P25",
-      "name": "Categorias Raras",
-      "objective": "Agrupar categorias com poucas observações",
-      "severity": "BAIXO-MÉDIO",
-      "frequency": "Comum",
+      "name": "Rare Categories",
+      "objective": "Group categories with few observations",
+      "severity": "LOW-MEDIUM",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Agrupar Outros",
-          "code": "min_freq = len(df) * 0.01\nrare = df['categoria'].value_counts()[df['categoria'].value_counts() < min_freq].index\ndf['categoria'] = df['categoria'].apply(\n    lambda x: 'Other' if x in rare else x\n)"
+          "name": "Group Others",
+          "code": "min_freq = len(df) * 0.01\nrare = df['category'].value_counts()[df['category'].value_counts() < min_freq].index\ndf['category'] = df['category'].apply(\n    lambda x: 'Other' if x in rare else x\n)"
         },
         {
           "step": 2,
-          "name": "Ou Remover Coluna",
-          "code": "if df['categoria'].nunique() > 100:\n    df = df.drop(columns=['categoria'])"
+          "name": "Or Remove Column",
+          "code": "if df['category'].nunique() > 100:\n    df = df.drop(columns=['category'])"
         }
       ]
     },
     {
       "id": "P26",
-      "name": "Colunas Constantes",
-      "objective": "Remover features com variância zero",
-      "severity": "BAIXO",
-      "frequency": "Comum",
+      "name": "Constant Columns",
+      "objective": "Remove features with zero variance",
+      "severity": "LOW",
+      "frequency": "Common",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar",
+          "name": "Detect",
           "code": "constant_cols = df.columns[df.nunique() == 1].tolist()"
         },
         {
           "step": 2,
-          "name": "Remover",
+          "name": "Remove",
           "code": "df = df.drop(columns=constant_cols)"
         }
       ]
     },
     {
       "id": "P27",
-      "name": "Target Ruidoso",
-      "objective": "Lidar com inconsistências na variável alvo",
-      "severity": "CRÍTICO",
-      "frequency": "Comum em dados etiquetados manualmente",
+      "name": "Noisy Target",
+      "objective": "Handle inconsistencies in target variable",
+      "severity": "CRITICAL",
+      "frequency": "Common in manually labeled data",
       "branches": [
         {
           "step": 1,
-          "name": "Auditar Labels",
-          "code": "print(df['target'].value_counts())\nduplicates = df.groupby(df.columns.difference(['target']))['target'].nunique()\ninconsistent = duplicates[duplicates > 1]\nprint(f'Entradas inconsistentes: {len(inconsistent)}')"
+          "name": "Audit Labels",
+          "code": "print(df['target'].value_counts())\nduplicates = df.groupby(df.columns.difference(['target']))['target'].nunique()\ninconsistent = duplicates[duplicates > 1]\nprint(f'Inconsistent entries: {len(inconsistent)}')"
         },
         {
           "step": 2,
-          "name": "Redefinir Target",
+          "name": "Redefine Target",
           "solutions": [
             {
-              "method": "Moda",
+              "method": "Mode",
               "code": "df_clean = df.groupby(df.columns.difference(['target'])).agg({\n    'target': lambda x: x.mode()[0]\n}).reset_index()"
             },
             {
-              "method": "Remover inconsistentes",
+              "method": "Remove inconsistent",
               "code": "consistent_ids = df.groupby('id')['target'].nunique()\ndf_clean = df[df['id'].isin(consistent_ids[consistent_ids == 1].index)]"
             },
             {
-              "method": "Criar classe 'Ambíguo'",
-              "code": "df.loc[inconsistent_mask, 'target'] = 'Ambiguo'"
+              "method": "Create 'Ambiguous' class",
+              "code": "df.loc[inconsistent_mask, 'target'] = 'Ambiguous'"
             }
           ]
         }
@@ -1348,31 +1348,31 @@
     },
     {
       "id": "P28",
-      "name": "Granularidade Incorreta",
-      "objective": "Garantir que unidade de análise está correta",
-      "severity": "CRÍTICO",
-      "frequency": "Comum em agregações",
+      "name": "Wrong Granularity",
+      "objective": "Ensure analysis unit is correct",
+      "severity": "CRITICAL",
+      "frequency": "Common in aggregations",
       "branches": [
         {
           "step": 1,
-          "name": "Definir Unidade de Análise",
+          "name": "Define Unit of Analysis",
           "considerations": [
-            "Predição por: cliente, produto, dia?",
-            "Agregação: uma linha por cliente ou por transação?",
-            "Duplicação: mesma pessoa em múltiplas linhas?"
+            "Predict by: customer, product, day?",
+            "Aggregation: one row per customer or per transaction?",
+            "Duplication: same person in multiple rows?"
           ]
         },
         {
           "step": 2,
-          "name": "Agregar ou Separar",
+          "name": "Aggregate or Separate",
           "solutions": [
             {
-              "method": "Agregar",
+              "method": "Aggregate",
               "code": "df_agg = df.groupby(['customer_id', pd.Grouper(key='date', freq='M')]).agg({\n    'amount': 'sum',\n    'transactions': 'count'\n}).reset_index()"
             },
             {
-              "method": "Separar",
-              "note": "Não há solução se dados foi perdida"
+              "method": "Separate",
+              "note": "No solution if data is already lost"
             }
           ]
         }
@@ -1380,53 +1380,53 @@
     },
     {
       "id": "P29",
-      "name": "Leakage Indireto",
-      "objective": "Detectar quando feature é consequência do target",
-      "severity": "CRÍTICO",
-      "frequency": "Comum em iniciantes",
+      "name": "Indirect Leakage",
+      "objective": "Detect when feature is consequence of target",
+      "severity": "CRITICAL",
+      "frequency": "Common among beginners",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Features Consequência",
+          "name": "Detect Features That Are Consequences",
           "red_flags": [
-            "Prever 'venda' usando 'comissão_vendedor'",
-            "Prever 'risco_crédito' usando 'status_pagamento_posterior'",
-            "Prever 'dropout' usando 'notas_finais'"
+            "Predict 'sale' using 'seller_commission'",
+            "Predict 'credit_risk' using 'payment_status_later'",
+            "Predict 'dropout' using 'final_grades'"
           ],
-          "detection": "Correlação alta com target + feature é posterior ao evento"
+          "detection": "High correlation with target + feature is after event"
         },
         {
           "step": 2,
-          "name": "Remover",
-          "code": "if df['data_feature'] > df['data_target']:\n    print('LEAKAGE: Feature é posterior ao target!')\n    df = df.drop(columns=['feature_consequencia'])"
+          "name": "Remove",
+          "code": "if df['feature_date'] > df['target_date']:\n    print('LEAKAGE: Feature is after target!')\n    df = df.drop(columns=['consequence_feature'])"
         }
       ]
     },
     {
       "id": "P30",
-      "name": "Split Incorreto",
-      "objective": "Garantir separação correta entre treino/teste",
-      "severity": "CRÍTICO",
-      "frequency": "Muito comum em iniciantes",
+      "name": "Wrong Split",
+      "objective": "Ensure correct separation between train/test",
+      "severity": "CRITICAL",
+      "frequency": "Very common among beginners",
       "branches": [
         {
           "step": 1,
-          "name": "Refazer Split",
-          "problem": "Entidades relacionadas em ambas partições",
+          "name": "Redo Split",
+          "problem": "Related entities in both partitions",
           "code": "unique_customers = df['customer_id'].unique()\ntrain_custs, test_custs = train_test_split(unique_customers, test_size=0.2)\ndf_train = df[df['customer_id'].isin(train_custs)]\ndf_test = df[df['customer_id'].isin(test_custs)]"
         },
         {
           "step": 2,
-          "name": "Garantir Entidades Separadas",
+          "name": "Ensure Entities Are Separated",
           "code": "assert not df_train['customer_id'].isin(df_test['customer_id']).any()\nassert df_train['id'].is_unique and df_test['id'].is_unique"
         },
         {
           "step": 3,
-          "name": "Fit só no Treino",
-          "description": "CRÍTICO: evitar leakage",
+          "name": "Fit Only on Training",
+          "description": "CRITICAL: prevent leakage",
           "solutions": [
             {
-              "wrong": "X_test_scaled = scaler.fit_transform(X_test)  # ERRADO!",
+              "wrong": "X_test_scaled = scaler.fit_transform(X_test)  # WRONG!",
               "correct": "scaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\nX_train_encoded = encoder.fit_transform(X_train)\nX_test_encoded = encoder.transform(X_test)"
             }
           ]
@@ -1435,21 +1435,21 @@
     },
     {
       "id": "P31",
-      "name": "Dimensionalidade Alta",
-      "objective": "Reduzir número de features quando muito elevado",
-      "severity": "MÉDIO",
-      "frequency": "Comum em grandes datasets",
+      "name": "High Dimensionality",
+      "objective": "Reduce number of features when very high",
+      "severity": "MEDIUM",
+      "frequency": "Common in large datasets",
       "branches": [
         {
           "step": 1,
-          "name": "Feature Selection - Métodos de Filtro",
+          "name": "Feature Selection - Filter Methods",
           "solutions": [
             {
-              "method": "Correlação com target",
+              "method": "Correlation with target",
               "code": "correlations = df.corr()['target'].abs().sort_values(ascending=False)\ntop_features = correlations[correlations > 0.1].index.tolist()"
             },
             {
-              "method": "Chi-square (categóricas)",
+              "method": "Chi-square (categorical)",
               "code": "from sklearn.feature_selection import chi2, SelectKBest\nselector = SelectKBest(chi2, k=50)\nX_selected = selector.fit_transform(X_categorical, y)"
             },
             {
@@ -1460,7 +1460,7 @@
         },
         {
           "step": 2,
-          "name": "Feature Selection - Métodos Wrapper",
+          "name": "Feature Selection - Wrapper Methods",
           "solutions": [
             {
               "method": "RFE",
@@ -1474,101 +1474,101 @@
         },
         {
           "step": 3,
-          "name": "Feature Selection - Métodos Embedded",
+          "name": "Feature Selection - Embedded Methods",
           "solutions": [
             {
               "method": "Tree-based importance",
               "code": "rf = RandomForestClassifier()\nrf.fit(X, y)\nfeature_importance = pd.DataFrame({\n    'feature': X.columns,\n    'importance': rf.feature_importances_\n}).sort_values('importance', ascending=False)"
             },
             {
-              "method": "Coeficientes lineares",
+              "method": "Linear coefficients",
               "code": "lr = LogisticRegression(max_iter=1000)\nlr.fit(X, y)\ncoef_importance = pd.DataFrame({\n    'feature': X.columns,\n    'coef': np.abs(lr.coef_[0])\n}).sort_values('coef', ascending=False)"
             }
           ]
         },
         {
           "step": 4,
-          "name": "PCA - Componentes Principais",
+          "name": "PCA - Principal Components",
           "code": "from sklearn.decomposition import PCA\npca = PCA(n_components=0.95)\nX_pca = pca.fit_transform(X)\nprint(f'Features: {X.shape[1]} → {X_pca.shape[1]}')",
-          "note": "Use se interpretabilidade não é crítica"
+          "note": "Use if interpretability is not critical"
         },
         {
           "step": 5,
-          "name": "Validação",
-          "code": "# Comparar performance: features reduzidas vs original\nprint(f'Dimensionalidade reduzida de {X.shape[1]} para {len(selected_features)}')"
+          "name": "Validation",
+          "code": "# Compare performance: reduced features vs original\nprint(f'Dimensionality reduced from {X.shape[1]} to {len(selected_features)}')"
         }
       ]
     },
     {
       "id": "P32",
       "name": "Feature Interactions",
-      "objective": "Criar features compostas quando relevante",
-      "severity": "MÉDIO",
-      "frequency": "Comum em feature engineering",
+      "objective": "Create composite features when relevant",
+      "severity": "MEDIUM",
+      "frequency": "Common in feature engineering",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar Necessidade",
+          "name": "Detect Need",
           "code": "from sklearn.preprocessing import PolynomialFeatures\npoly = PolynomialFeatures(degree=2, include_bias=False)\nX_poly = poly.fit_transform(X)",
-          "test": "Se performance com features polinomiais melhora significativamente, há interações"
+          "test": "If performance with polynomial features improves significantly, there are interactions"
         },
         {
           "step": 2,
-          "name": "Criar Features Específicas",
+          "name": "Create Specific Features",
           "solutions": [
             {
-              "type": "Multiplicações",
-              "code": "df['preco_quantidade'] = df['preco'] * df['quantidade']"
+              "type": "Multiplications",
+              "code": "df['price_quantity'] = df['price'] * df['quantity']"
             },
             {
-              "type": "Razões",
-              "code": "df['roi'] = df['lucro'] / df['investimento']"
+              "type": "Ratios",
+              "code": "df['roi'] = df['profit'] / df['investment']"
             },
             {
-              "type": "Somas/Subtrações",
-              "code": "df['total_ativo'] = df['caixa'] + df['investimentos']"
+              "type": "Sums/Subtractions",
+              "code": "df['total_assets'] = df['cash'] + df['investments']"
             },
             {
-              "type": "Baseadas em domínio",
-              "code": "df['idade_ao_comprar'] = df['data_compra'].dt.year - df['ano_nascimento']\ndf['dia_semana'] = df['data'].dt.dayofweek\ndf['eh_inverno'] = df['mes'].isin([12, 1, 2]).astype(int)"
+              "type": "Domain-based",
+              "code": "df['age_at_purchase'] = df['purchase_date'].dt.year - df['birth_year']\ndf['day_of_week'] = df['date'].dt.dayofweek\ndf['is_winter'] = df['month'].isin([12, 1, 2]).astype(int)"
             }
           ]
         },
         {
           "step": 3,
-          "name": "Validação",
-          "code": "correlation = df['feature_nova'].corr(df['target'])\nprint(f'Correlação com target: {correlation:.3f}')",
-          "rule": "Feature deve ter relação clara com target, não criar ao acaso"
+          "name": "Validation",
+          "code": "correlation = df['new_feature'].corr(df['target'])\nprint(f'Correlation with target: {correlation:.3f}')",
+          "rule": "Feature should have clear relationship with target, not created randomly"
         }
       ]
     },
     {
       "id": "P33",
-      "name": "Valores Especiais (Inf, NaN infinito)",
-      "objective": "Tratar valores numéricos anormais",
-      "severity": "MÉDIO",
-      "frequency": "Ocasional",
+      "name": "Special Values (Inf, Infinite NaN)",
+      "objective": "Handle abnormal numeric values",
+      "severity": "MEDIUM",
+      "frequency": "Occasional",
       "branches": [
         {
           "step": 1,
-          "name": "Detetar",
-          "code": "inf_rows = df[np.isinf(df['coluna'])]\nlarge_values = df[np.abs(df['coluna']) > 1e10]\nprint(f'Infinitos: {np.isinf(df[\"coluna\"]).sum()}')"
+          "name": "Detect",
+          "code": "inf_rows = df[np.isinf(df['column'])]\nlarge_values = df[np.abs(df['column']) > 1e10]\nprint(f'Infinities: {np.isinf(df[\"column\"]).sum()}')"
         },
         {
           "step": 2,
-          "name": "Corrigir",
+          "name": "Fix",
           "solutions": [
             {
-              "method": "Substituir infinito",
-              "code": "df['coluna'] = df['coluna'].replace([np.inf, -np.inf], np.nan)"
+              "method": "Replace infinity",
+              "code": "df['column'] = df['column'].replace([np.inf, -np.inf], np.nan)"
             },
             {
               "method": "Capping",
-              "code": "df['coluna'] = df['coluna'].clip(-1e10, 1e10)"
+              "code": "df['column'] = df['column'].clip(-1e10, 1e10)"
             },
             {
-              "method": "Depois aplicar P01 (Missing)",
-              "note": "Depois de substituir por np.nan"
+              "method": "Then apply P01 (Missing)",
+              "note": "After replacing with np.nan"
             }
           ]
         }
@@ -1576,35 +1576,35 @@
     },
     {
       "id": "P34",
-      "name": "Precisão Numérica / Floating Point",
-      "objective": "Evitar erros de representação numérica",
-      "severity": "BAIXO-MÉDIO",
-      "frequency": "Ocasional em finanças",
+      "name": "Numeric Precision / Floating Point",
+      "objective": "Avoid numeric representation errors",
+      "severity": "LOW-MEDIUM",
+      "frequency": "Occasional in finance",
       "branches": [
         {
           "step": 1,
-          "name": "Usar Decimal para Dinheiro",
-          "code": "from decimal import Decimal\n# ERRADO: 0.1 + 0.2 = 0.30000000000000004\n# CERTO:\npreco = Decimal('0.1') + Decimal('0.2')  # 0.3"
+          "name": "Use Decimal for Money",
+          "code": "from decimal import Decimal\n# WRONG: 0.1 + 0.2 = 0.30000000000000004\n# CORRECT:\nprice = Decimal('0.1') + Decimal('0.2')  # 0.3"
         },
         {
           "step": 2,
-          "name": "Arredondar com Cuidado",
-          "code": "df['preco_rounded'] = df['preco'].round(2)\ndf_agg = df.groupby('categoria')['preco'].sum().round(2)"
+          "name": "Round Carefully",
+          "code": "df['price_rounded'] = df['price'].round(2)\ndf_agg = df.groupby('category')['price'].sum().round(2)"
         },
         {
           "step": 3,
-          "name": "Usar Escala Apropriada",
+          "name": "Use Appropriate Scale",
           "solutions": [
             {
-              "if": "Valores muito pequenos",
-              "code": "df['valor_scaled'] = df['valor'] * 1000"
+              "if": "Very small values",
+              "code": "df['value_scaled'] = df['value'] * 1000"
             },
             {
-              "if": "Valores muito grandes",
-              "code": "df['valor_scaled'] = df['valor'] / 1e6"
+              "if": "Very large values",
+              "code": "df['value_scaled'] = df['value'] / 1e6"
             },
             {
-              "note": "Desescalar antes de usar previsões"
+              "note": "Unscale before using predictions"
             }
           ]
         }
@@ -1612,79 +1612,79 @@
     },
     {
       "id": "P35",
-      "name": "Validação Cruzada Apropriada",
-      "objective": "Garantir splitting correto em CV",
-      "severity": "MÉDIO",
-      "frequency": "Muito comum",
+      "name": "Appropriate Cross-Validation",
+      "objective": "Ensure correct splitting in CV",
+      "severity": "MEDIUM",
+      "frequency": "Very common",
       "branches": [
         {
           "step": 1,
-          "name": "Para Dados Aleatórios",
+          "name": "For Random Data",
           "code": "from sklearn.model_selection import StratifiedKFold\ncv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\nscores = cross_val_score(model, X, y, cv=cv)"
         },
         {
           "step": 2,
-          "name": "Para Séries Temporais",
+          "name": "For Time Series",
           "code": "from sklearn.model_selection import TimeSeriesSplit\ntscv = TimeSeriesSplit(n_splits=5)\nfor train_idx, test_idx in tscv.split(X):\n    X_train, X_test = X[train_idx], X[test_idx]",
-          "rule": "Nunca aleatório em séries temporais"
+          "rule": "Never random on time series"
         },
         {
           "step": 3,
-          "name": "Para Dados Hierárquicos",
-          "code": "from sklearn.model_selection import GroupKFold\ngroups = df['customer_id'].values\ncv = GroupKFold(n_splits=5)\nfor train_idx, test_idx in cv.split(X, y, groups):\n    # Mesmo cliente não em treino e teste"
+          "name": "For Hierarchical Data",
+          "code": "from sklearn.model_selection import GroupKFold\ngroups = df['customer_id'].values\ncv = GroupKFold(n_splits=5)\nfor train_idx, test_idx in cv.split(X, y, groups):\n    # Same customer not in training and test"
         }
       ]
     }
   ],
   "checklist": {
     "basic": [
-      "P01: Valores em falta tratados",
-      "P02: Duplicados removidos ou justificados",
-      "P03: Outliers analisados e decididos",
-      "P04: Tipos de dados corretos",
-      "P05: Categorias padronizadas"
+      "P01: Missing values handled",
+      "P02: Duplicates removed or justified",
+      "P03: Outliers analyzed and decided",
+      "P04: Correct data types",
+      "P05: Standardized categories"
     ],
     "quality": [
-      "P06: Valores inválidos tratados",
-      "P07: Features escaladas (se necessário)",
-      "P08: Categóricas codificadas",
-      "P09: Classes desbalanceadas tratadas",
-      "P10: Viés analisado e mitigado"
+      "P06: Invalid values handled",
+      "P07: Features scaled (if necessary)",
+      "P08: Categorical variables encoded",
+      "P09: Imbalanced classes handled",
+      "P10: Bias analyzed and mitigated"
     ],
     "feature_engineering": [
-      "P11: Features irrelevantes removidas",
-      "P12: IDs removidos",
-      "P13: Multicolinearidade tratada",
-      "P31: Dimensionalidade reduzida (se necessário)",
-      "P32: Interactions criadas (se relevante)"
+      "P11: Irrelevant features removed",
+      "P12: IDs removed",
+      "P13: Multicollinearity handled",
+      "P31: Dimensionality reduced (if necessary)",
+      "P32: Interactions created (if relevant)"
     ],
     "temporal_and_special": [
-      "P14: Data leakage evitado",
-      "P15: Joins validados",
-      "P16: Séries temporais ordenadas",
-      "P17: Drift detectado e tratado",
-      "P18: Ruído reduzido"
+      "P14: Data leakage prevented",
+      "P15: Joins validated",
+      "P16: Time series ordered",
+      "P17: Drift detected and handled",
+      "P18: Noise reduced"
     ],
     "data_types": [
-      "P19: Texto processado",
-      "P20: Imagens validadas",
-      "P21: Áudio processado",
-      "P22: Integridade referencial validada"
+      "P19: Text processed",
+      "P20: Images validated",
+      "P21: Audio processed",
+      "P22: Referential integrity validated"
     ],
     "advanced": [
-      "P23: Frequências uniformizadas",
-      "P24: Gaps temporais tratados",
-      "P25: Categorias raras agrupadas",
-      "P26: Colunas constantes removidas",
-      "P27: Target auditado"
+      "P23: Frequencies uniformized",
+      "P24: Temporal gaps handled",
+      "P25: Rare categories grouped",
+      "P26: Constant columns removed",
+      "P27: Target audited"
     ],
     "critical": [
-      "P28: Granularidade correta",
-      "P29: Leakage indireto evitado",
-      "P30: Split feito corretamente",
-      "P33: Valores especiais tratados",
-      "P34: Precisão numérica validada",
-      "P35: CV apropriada ao tipo de dados"
+      "P28: Correct granularity",
+      "P29: Indirect leakage prevented",
+      "P30: Split done correctly",
+      "P33: Special values handled",
+      "P34: Numeric precision validated",
+      "P35: Appropriate CV for data type"
     ]
   }
 }
