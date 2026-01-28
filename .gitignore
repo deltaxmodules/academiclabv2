@@ -18,7 +18,8 @@ dist/
 
 # Env
 .env
-.env.*
+.env.*.local
+!.env.example
 
 # OS
 .DS_Store
