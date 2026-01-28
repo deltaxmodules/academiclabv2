@@ -84,7 +84,10 @@ def _compute_stats(df: pd.DataFrame) -> Dict:
     target_candidates = [
         col for col in df.columns if col.lower() in {"target", "label", "y"}
     ]
-    target_col = target_candidates[0] if target_candidates else df.columns[-1]
+    if len(df.columns) == 0:
+        target_col = ""
+    else:
+        target_col = target_candidates[0] if target_candidates else df.columns[-1]
     target_dist = {}
     if target_col in df.columns:
         value_counts = df[target_col].value_counts(dropna=False)
