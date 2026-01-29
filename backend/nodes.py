@@ -50,6 +50,8 @@ def should_route_to_expert(text: str) -> bool:
     text = _clean_text(text)
     if not text:
         return False
+    if text.lower().startswith("expert:"):
+        return True
     if re.fullmatch(r"p\d{2}", text.lower()):
         return False
     if len(text) < 6:

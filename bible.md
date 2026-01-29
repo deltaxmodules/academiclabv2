@@ -118,6 +118,11 @@ Pense no frontend como a sala de aula, onde o aluno interage com o tutor.
 - A resposta vem no mesmo idioma da pergunta
 - Trechos de código aparecem formatados com botão “Copy”
 
+**Atalho manual (quando o aluno quer forçar):**
+- Escreva `expert:` no início da mensagem
+- Exemplo: `expert: preciso de um exemplo em Python para imputação`
+- Isso força o modo especialista nessa resposta
+
 #### **3. Reupload (nova versão do CSV)**
 - O aluno clica em “Re-evaluate CSV”
 - Abre um modal com instruções simples
