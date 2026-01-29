@@ -372,6 +372,8 @@ RULES:
 - Avoid the word 'python' as a standalone line
 - Keep it concise and actionable (max ~{expert_word_limit} words)
 - Respond in {target_lang}
+- CRITICAL: Do NOT repeat explanations already given in the recent conversation.
+  If the student is building on a previous answer, reference briefly and extend.
 
 OUTPUT FORMAT:
 1) Direct answer to the student's question (1–2 sentences)
@@ -397,11 +399,13 @@ OUTPUT FORMAT:
 
     extra_focus = ""
 
-    recent_tutor = [
-        m.get("content", "")
-        for m in state.get("conversation", [])
-        if m.get("role") == "assistant"
-    ][-3:]
+    recent_conversation_full = []
+    for msg in state.get("conversation", [])[-10:]:
+        role = (msg.get("role", "") or "").upper()
+        content = (msg.get("content", "") or "").strip()
+        if content:
+            recent_conversation_full.append(f"[{role}]: {content[:300]}")
+    recent_context = "\n".join(recent_conversation_full) if recent_conversation_full else "N/A"
 
     framework_block = ""
     if re.search(r"\bP\d{2}\b", student_message, re.IGNORECASE) and problem_detail:
@@ -409,10 +413,12 @@ OUTPUT FORMAT:
 
     user_prompt = f"""
 Problem: {problem_id or 'N/A'} - {problem_detail.get('name') if problem_detail else 'N/A'}
-Student message: {student_message}
 
-Tutor context (recent):
-{chr(10).join(recent_tutor) if recent_tutor else "N/A"}
+=== RECENT CONVERSATION CONTEXT ===
+{recent_context}
+
+=== LATEST STUDENT QUESTION ===
+{student_message}
 
 Conversation context:
 - Understanding level: {state['understanding_level']}
@@ -423,8 +429,9 @@ Checklist reference: {checklist_ref}
 {extra_focus}
 {framework_block}
 
-Answer the student's question directly using the provided results.
-Avoid repeating the method; focus on what to do next and why.
+Answer the LATEST student question directly.
+Do NOT repeat explanations already provided above.
+Focus on what to do next and why.
 """
 
     llm = _get_llm()
