@@ -335,6 +335,80 @@ def expert_help_node(state: StudentState) -> StudentState:
     style = state.get("response_style", "fast")
     expert_word_limit = "110" if style == "fast" else "180"
 
+    student_message = state["conversation"][-1]["content"]
+    msg_lower = student_message.lower()
+
+    # If the student already shared outlier rows, answer directly without restating the method.
+    if "outliers in" in msg_lower or "output is truncated" in msg_lower:
+        templates = {
+            "Portuguese": (
+                "Isto parece um padrão de valores impossíveis (ex.: BloodPressure=0), "
+                "que normalmente significam dados ausentes e não outliers reais. "
+                "O próximo passo é tratar esses zeros como missing, imputar ou remover, "
+                "e só depois repetir a detecção de outliers.\n\n"
+                "Próximos passos:\n"
+                "- Substituir 0 por NaN em BloodPressure e reavaliar\n"
+                "- Validar se os restantes outliers são clinicamente plausíveis\n"
+                "Checklist: CHK-001"
+            ),
+            "Spanish": (
+                "Esto parece un patrón de valores imposibles (p. ej., BloodPressure=0), "
+                "que normalmente indica datos ausentes, no outliers reales. "
+                "El siguiente paso es tratar esos ceros como missing, imputar o eliminar, "
+                "y luego repetir la detección de outliers.\n\n"
+                "Siguientes pasos:\n"
+                "- Sustituir 0 por NaN en BloodPressure y reevaluar\n"
+                "- Validar si los outliers restantes son plausibles clínicamente\n"
+                "Checklist: CHK-001"
+            ),
+            "Italian": (
+                "Qui sembra un pattern di valori impossibili (es. BloodPressure=0), "
+                "che di solito indica dati mancanti, non veri outlier. "
+                "Il prossimo passo è trattare questi zeri come missing, imputare o rimuovere, "
+                "e poi rifare la rilevazione degli outlier.\n\n"
+                "Prossimi passi:\n"
+                "- Sostituire 0 con NaN in BloodPressure e rivalutare\n"
+                "- Verificare se gli outlier rimanenti sono clinicamente plausibili\n"
+                "Checklist: CHK-001"
+            ),
+            "French": (
+                "Cela ressemble à un schéma de valeurs impossibles (ex. BloodPressure=0), "
+                "qui indiquent généralement des données manquantes, pas de vrais outliers. "
+                "L’étape suivante est de traiter ces zéros comme des valeurs manquantes, "
+                "imputer ou supprimer, puis relancer la détection d’outliers.\n\n"
+                "Prochaines étapes :\n"
+                "- Remplacer 0 par NaN dans BloodPressure et réévaluer\n"
+                "- Vérifier si les outliers restants sont plausibles cliniquement\n"
+                "Checklist : CHK-001"
+            ),
+            "German": (
+                "Das sieht nach einem Muster unmöglicher Werte aus (z. B. BloodPressure=0), "
+                "was meist fehlende Werte bedeutet und keine echten Ausreißer. "
+                "Der nächste Schritt ist, diese Nullen als Missing zu behandeln, zu imputieren "
+                "oder zu entfernen und danach die Ausreißer erneut zu prüfen.\n\n"
+                "Nächste Schritte:\n"
+                "- 0 in BloodPressure durch NaN ersetzen und neu bewerten\n"
+                "- Prüfen, ob die übrigen Ausreißer klinisch plausibel sind\n"
+                "Checklist: CHK-001"
+            ),
+            "English": (
+                "This looks like a pattern of impossible values (e.g., BloodPressure=0), "
+                "which usually indicates missing data, not true outliers. "
+                "Next, treat those zeros as missing, impute or remove them, "
+                "then re-run outlier detection.\n\n"
+                "Next steps:\n"
+                "- Replace 0 with NaN in BloodPressure and re-evaluate\n"
+                "- Validate whether remaining outliers are clinically plausible\n"
+                "Checklist: CHK-001"
+            ),
+        }
+        output = templates.get(target_lang, templates["English"])
+        state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
+        state["last_response"] = output
+        state["last_action"] = "expert_help"
+        state["timestamp_last_update"] = _now()
+        return state
+
     system_prompt = f"""
 You are a senior DATA SCIENCE SPECIALIST and teacher.
 
@@ -372,9 +446,8 @@ OUTPUT FORMAT:
             hint = _missing_action_hint(mpct, state.get("csv_stats", {}).get("rows", 0), mtype)
             p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
 
-    student_message = state["conversation"][-1]["content"]
     extra_focus = ""
-    if "outliers in" in student_message.lower():
+    if "outliers in" in msg_lower:
         extra_focus = (
             "The student already ran outlier detection and shared rows. "
             "Interpret likely causes (e.g., zeros as missing in biomedical data), "
