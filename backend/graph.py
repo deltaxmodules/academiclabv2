@@ -88,6 +88,10 @@ def _step_router(state: StudentState) -> str:
         return "await_user"
 
     if last_action == "expert_help":
+        if wants_expert:
+            return "expert_help"
+        if state.get("current_problem"):
+            return "explain_problem"
         return "await_user"
 
     if last_action == "validate_no_code":
