@@ -59,6 +59,7 @@ def _compute_stats(
 
     # Numeric outliers (context-aware + sensitivity)
     outliers = {}
+    outlier_warnings: Dict[str, list[str]] = {}
     context_by_column = context_by_column or {}
     thresholds = thresholds or {}
     sensitivity = float(thresholds.get("outlier_sensitivity", 3.0))
@@ -69,6 +70,19 @@ def _compute_stats(
             if context and context.get("min_expected") is not None and context.get("max_expected") is not None:
                 min_expected = float(context["min_expected"])
                 max_expected = float(context["max_expected"])
+                data_min = float(df[col].min())
+                data_max = float(df[col].max())
+                warnings = []
+                if max_expected < data_min or min_expected > data_max:
+                    warnings.append(
+                        f"Context range [{min_expected}, {max_expected}] does not overlap data range [{data_min}, {data_max}]"
+                    )
+                if min_expected <= data_min and max_expected >= data_max:
+                    warnings.append(
+                        "Context range covers all data points; no outliers will be marked within the range"
+                    )
+                if warnings:
+                    outlier_warnings[col] = warnings
                 outlier_mask = (df[col] < min_expected) | (df[col] > max_expected)
             else:
                 mean = df[col].mean()
@@ -145,6 +159,7 @@ def _compute_stats(
         "missing_types": missing_types,
         "duplicates": duplicates,
         "outliers": outliers,
+        "outlier_warnings": outlier_warnings,
         "high_correlations": high_corr,
         "target_column": target_col,
         "target_distribution": target_dist,

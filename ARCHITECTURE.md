@@ -137,6 +137,18 @@ GET /health
 - Minimal data copying
 - Caching (if applicable)
 
+## Outlier Detection Logic
+
+### Priority
+1. **Context wins over thresholds**: if a column has `min_expected`/`max_expected`, we use that range.
+2. **Sensitivity applies only without context**: z-score threshold (default **3.0**).
+3. **Dismiss is session-local**: marking P03 as false alarm affects only the current session.
+
+### Context Validation Warnings
+When context is provided:
+- If the context range does **not overlap** the data range, we keep it but return a warning.
+- If the context range **covers all data points**, we return an info warning (no outliers within range).
+
 ## Deployment
 
 ### Environments
