@@ -24,6 +24,7 @@ function App() {
   const [copyNotice, setCopyNotice] = useState("");
   const [showTechHelpModal, setShowTechHelpModal] = useState(false);
   const [techHelpText, setTechHelpText] = useState("");
+  const [showResetModal, setShowResetModal] = useState(false);
   const [contextData, setContextData] = useState({
     column: "",
     dataset_type: "",
@@ -187,6 +188,44 @@ function App() {
 
   const handleOpenReupload = () => {
     setShowReuploadModal(true);
+  };
+
+  const handleResetSession = async () => {
+    if (!sessionId) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/session/${sessionId}/reset`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSessionId(data.session_id);
+        setCsvInfo(null);
+        setMessages([
+          {
+            id: `${Date.now()}-reset`,
+            role: "assistant",
+            content: data.message,
+            action: "reset",
+          },
+        ]);
+        setActiveProblems([]);
+        setThresholds({ outlier_sensitivity: 3.0 });
+        setReuploadReady(false);
+        setShowResetModal(false);
+        if (wsRef.current) {
+          wsRef.current.close();
+        }
+        connectWebSocket(data.session_id);
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenDismiss = () => {
@@ -455,6 +494,14 @@ function App() {
               >
                 Ask for technical help
               </button>
+              <button
+                className="outline-button"
+                type="button"
+                onClick={() => setShowResetModal(true)}
+                disabled={loading}
+              >
+                Start new session
+              </button>
             </div>
 
             {activeProblems.includes("P03") && (
@@ -678,6 +725,23 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 ✅ Send question
               </button>
               <button className="ghost" onClick={() => setShowTechHelpModal(false)}>
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetModal && sessionId && (
+        <div className="modal-backdrop" onClick={() => setShowResetModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>♻️ Start a new session</h3>
+            <p>This clears the current chat and starts fresh with a new upload.</p>
+            <div className="modal-actions">
+              <button className="upload-button" onClick={handleResetSession} disabled={loading}>
+                ✅ Reset session
+              </button>
+              <button className="ghost" onClick={() => setShowResetModal(false)}>
                 ❌ Cancel
               </button>
             </div>

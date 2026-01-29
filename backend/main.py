@@ -393,6 +393,32 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     return _sanitize_for_json(response)
 
 
+@app.post("/session/{session_id}/reset")
+async def reset_session(session_id: str):
+    """Reset a session to start over with a fresh upload."""
+    if session_id not in STUDENT_SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    old_state = STUDENT_SESSIONS[session_id]
+    new_session_id = f"session_{uuid.uuid4().hex}"
+    new_state = create_initial_state(
+        student_id=old_state.get("student_id", "default_user"),
+        session_id=new_session_id,
+        csv_filename="",
+        csv_stats={},
+    )
+    STUDENT_SESSIONS[new_session_id] = new_state
+    del STUDENT_SESSIONS[session_id]
+
+    return _sanitize_for_json(
+        {
+            "success": True,
+            "session_id": new_session_id,
+            "message": "✅ Session reset. Upload a new CSV to start over.",
+        }
+    )
+
+
 @app.post("/session/{session_id}/dismiss-problem/{problem_id}")
 async def dismiss_problem(session_id: str, problem_id: str, payload: Dict = Body(...)):
     """Dismiss a problem as a false alarm with required explanation."""
