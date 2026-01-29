@@ -278,8 +278,14 @@
 }
 
 .outline-button.danger {
-  color: #a63d2b;
-  border-color: rgba(166, 61, 43, 0.5);
+  color: white;
+  background: #c34b32;
+  border-color: #c34b32;
+}
+
+.outline-button.danger:hover {
+  background: #a63d2b;
+  border-color: #a63d2b;
 }
 
 .outlier-tools {
