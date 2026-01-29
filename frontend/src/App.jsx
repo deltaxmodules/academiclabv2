@@ -12,9 +12,12 @@ function App() {
   const [status, setStatus] = useState("idle");
   const [loading, setLoading] = useState(false);
   const [reuploadReady, setReuploadReady] = useState(false);
+  const [canAcceptOutliers, setCanAcceptOutliers] = useState(false);
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
   const [showReuploadModal, setShowReuploadModal] = useState(false);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [acceptReason, setAcceptReason] = useState("");
 
   const statusLabel = useMemo(() => {
     if (status === "connected") return "✅ Connected";
@@ -43,6 +46,7 @@ function App() {
             action: payload.action,
           },
         ]);
+        setCanAcceptOutliers(Boolean(payload.can_accept_outliers));
         if (
           payload.reupload_required ||
           payload.action === "mark_solved" ||
@@ -97,6 +101,7 @@ function App() {
           connectWebSocket(data.session_id);
         }
         setReuploadReady(false);
+        setCanAcceptOutliers(false);
       } else {
         setStatus("error");
       }
@@ -125,6 +130,47 @@ function App() {
 
   const handleOpenReupload = () => {
     setShowReuploadModal(true);
+  };
+
+  const handleOpenAccept = () => {
+    setAcceptReason("");
+    setShowAcceptModal(true);
+  };
+
+  const handleAcceptOutliers = async () => {
+    if (!acceptReason.trim()) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/accept/${sessionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          problem_id: "P03",
+          reason: acceptReason.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-accept`,
+            role: "assistant",
+            content: data.message,
+            action: "accept_problem",
+          },
+        ]);
+        setCanAcceptOutliers(false);
+        setShowAcceptModal(false);
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -226,6 +272,16 @@ function App() {
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
                 Send
               </button>
+              {canAcceptOutliers && (
+                <button
+                  className="accept-button"
+                  type="button"
+                  onClick={handleOpenAccept}
+                  disabled={loading}
+                >
+                  Accept outliers
+                </button>
+              )}
               <button
                 className="reupload-button"
                 type="button"
@@ -260,6 +316,34 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 ✅ I have the new file
               </label>
               <button className="ghost" onClick={() => setShowReuploadModal(false)}>
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAcceptModal && sessionId && (
+        <div className="modal-backdrop" onClick={() => setShowAcceptModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>✅ Accept outliers as valid</h3>
+            <p>Explain why these outliers are valid for your dataset.</p>
+            <textarea
+              className="reason-input"
+              placeholder="Example: These are premium customers with legitimate high values..."
+              value={acceptReason}
+              onChange={(e) => setAcceptReason(e.target.value)}
+              rows={4}
+            />
+            <div className="modal-actions">
+              <button
+                className="upload-button"
+                onClick={handleAcceptOutliers}
+                disabled={loading || !acceptReason.trim()}
+              >
+                ✅ Confirm
+              </button>
+              <button className="ghost" onClick={() => setShowAcceptModal(false)}>
                 ❌ Cancel
               </button>
             </div>
