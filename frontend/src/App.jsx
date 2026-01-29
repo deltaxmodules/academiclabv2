@@ -461,7 +461,8 @@ function App() {
                     type="button"
                     onClick={() => setShowOutlierTools((prev) => !prev)}
                   >
-                    {showOutlierTools ? "Hide" : "Open"}
+                    <span className={`chevron ${showOutlierTools ? "open" : ""}`}>›</span>
+                    {showOutlierTools ? "Hide details" : "Show details"}
                   </button>
                 </div>
                 {showOutlierTools && (
