@@ -27,6 +27,9 @@ function App() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notesText, setNotesText] = useState("");
+  const [notesTitle, setNotesTitle] = useState("");
+  const [notesIndex, setNotesIndex] = useState([]);
+  const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [responseStyle, setResponseStyle] = useState("fast");
   const [contextData, setContextData] = useState({
     column: "",
@@ -346,19 +349,90 @@ function App() {
   };
 
   const handleOpenNotes = () => {
-    const saved = localStorage.getItem("academiclab_notes") || "";
-    setNotesText(saved);
+    const savedIndex = JSON.parse(localStorage.getItem("academiclab_notes_index") || "[]");
+    setNotesIndex(savedIndex);
+    if (savedIndex.length > 0) {
+      const first = savedIndex[0];
+      const saved = localStorage.getItem(`academiclab_notes_${first.id}`) || "";
+      setSelectedNoteId(first.id);
+      setNotesTitle(first.title || "Untitled");
+      setNotesText(saved);
+    } else {
+      setSelectedNoteId(null);
+      setNotesTitle("");
+      setNotesText("");
+    }
     setShowNotesModal(true);
   };
 
   const handleSaveNotes = () => {
-    localStorage.setItem("academiclab_notes", notesText);
+    const id = selectedNoteId || `note_${Date.now()}`;
+    const title = notesTitle.trim() || "Untitled";
+    const updatedIndex = notesIndex.some((n) => n.id === id)
+      ? notesIndex.map((n) => (n.id === id ? { ...n, title } : n))
+      : [{ id, title }, ...notesIndex];
+
+    localStorage.setItem(`academiclab_notes_${id}`, notesText);
+    localStorage.setItem("academiclab_notes_index", JSON.stringify(updatedIndex));
+    setNotesIndex(updatedIndex);
+    setSelectedNoteId(id);
     setShowNotesModal(false);
   };
 
+  useEffect(() => {
+    if (!showNotesModal) return;
+    const id = selectedNoteId || "draft";
+    localStorage.setItem(`academiclab_notes_draft_${id}`, notesText);
+  }, [notesText, showNotesModal, selectedNoteId]);
+
+  useEffect(() => {
+    if (!showNotesModal) return;
+    const id = selectedNoteId || "draft";
+    localStorage.setItem(`academiclab_notes_draft_${id}`, notesText);
+  }, [notesText, showNotesModal, selectedNoteId]);
+
   const handleClearNotes = () => {
-    localStorage.removeItem("academiclab_notes");
+    if (!selectedNoteId) return;
+    localStorage.removeItem(`academiclab_notes_${selectedNoteId}`);
+    const updated = notesIndex.filter((n) => n.id !== selectedNoteId);
+    localStorage.setItem("academiclab_notes_index", JSON.stringify(updated));
+    setNotesIndex(updated);
+    if (updated.length > 0) {
+      const first = updated[0];
+      const saved = localStorage.getItem(`academiclab_notes_${first.id}`) || "";
+      setSelectedNoteId(first.id);
+      setNotesTitle(first.title || "Untitled");
+      setNotesText(saved);
+    } else {
+      setSelectedNoteId(null);
+      setNotesTitle("");
+      setNotesText("");
+    }
+  };
+
+  const handleNewNote = () => {
+    setSelectedNoteId(null);
+    setNotesTitle("");
     setNotesText("");
+  };
+
+  const handleSelectNote = (id) => {
+    const note = notesIndex.find((n) => n.id === id);
+    const saved = localStorage.getItem(`academiclab_notes_${id}`) || "";
+    setSelectedNoteId(id);
+    setNotesTitle(note?.title || "Untitled");
+    setNotesText(saved);
+  };
+
+  const handleExportNote = () => {
+    const title = notesTitle.trim() || "notes";
+    const blob = new Blob([notesText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleResponseStyle = async (style) => {
@@ -965,18 +1039,48 @@ function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Notes</h3>
             <p>Write your personal study notes here. They are saved locally in this browser.</p>
-            <textarea
-              className="reason-input"
-              placeholder="Your notes..."
-              value={notesText}
-              onChange={(e) => setNotesText(e.target.value)}
-              rows={8}
-            />
-            <div className="modal-actions">
-              <button className="upload-button" onClick={handleSaveNotes}>
-                Save notes
+            <div className="notes-toolbar">
+              <button className="outline-button" onClick={handleNewNote}>
+                New note
               </button>
-              <button className="ghost" onClick={handleClearNotes}>
+              <button className="outline-button" onClick={handleExportNote} disabled={!notesText.trim()}>
+                Export .txt
+              </button>
+              <button className="outline-button" onClick={handleSaveNotes} disabled={!notesText.trim()}>
+                Save
+              </button>
+            </div>
+            <div className="notes-layout">
+              <div className="notes-list">
+                {notesIndex.length === 0 && <p className="muted">No notes yet.</p>}
+                {notesIndex.map((note) => (
+                  <button
+                    key={note.id}
+                    className={note.id === selectedNoteId ? "note-item active" : "note-item"}
+                    onClick={() => handleSelectNote(note.id)}
+                  >
+                    {note.title || "Untitled"}
+                  </button>
+                ))}
+              </div>
+              <div className="notes-editor">
+                <input
+                  className="text-input"
+                  placeholder="Title"
+                  value={notesTitle}
+                  onChange={(e) => setNotesTitle(e.target.value)}
+                />
+                <textarea
+                  className="reason-input"
+                  placeholder="Your notes..."
+                  value={notesText}
+                  onChange={(e) => setNotesText(e.target.value)}
+                  rows={10}
+                />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="ghost" onClick={handleClearNotes} disabled={!selectedNoteId}>
                 Clear
               </button>
               <button className="ghost" onClick={() => setShowNotesModal(false)}>
