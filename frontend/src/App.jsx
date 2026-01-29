@@ -25,6 +25,8 @@ function App() {
   const [showTechHelpModal, setShowTechHelpModal] = useState(false);
   const [techHelpText, setTechHelpText] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notesText, setNotesText] = useState("");
   const [responseStyle, setResponseStyle] = useState("fast");
   const [contextData, setContextData] = useState({
     column: "",
@@ -341,6 +343,22 @@ function App() {
 
   const handleOpenReupload = () => {
     setShowReuploadModal(true);
+  };
+
+  const handleOpenNotes = () => {
+    const saved = localStorage.getItem("academiclab_notes") || "";
+    setNotesText(saved);
+    setShowNotesModal(true);
+  };
+
+  const handleSaveNotes = () => {
+    localStorage.setItem("academiclab_notes", notesText);
+    setShowNotesModal(false);
+  };
+
+  const handleClearNotes = () => {
+    localStorage.removeItem("academiclab_notes");
+    setNotesText("");
   };
 
   const handleResponseStyle = async (style) => {
@@ -693,6 +711,14 @@ function App() {
               >
                 Start new session
               </button>
+              <button
+                className="outline-button"
+                type="button"
+                onClick={handleOpenNotes}
+                disabled={loading}
+              >
+                Notes
+              </button>
             </div>
 
             {activeProblems.includes("P03") && (
@@ -928,6 +954,33 @@ function App() {
               </button>
               <button className="ghost" onClick={() => setShowResetModal(false)}>
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNotesModal && (
+        <div className="modal-backdrop" onClick={() => setShowNotesModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Notes</h3>
+            <p>Write your personal study notes here. They are saved locally in this browser.</p>
+            <textarea
+              className="reason-input"
+              placeholder="Your notes..."
+              value={notesText}
+              onChange={(e) => setNotesText(e.target.value)}
+              rows={8}
+            />
+            <div className="modal-actions">
+              <button className="upload-button" onClick={handleSaveNotes}>
+                Save notes
+              </button>
+              <button className="ghost" onClick={handleClearNotes}>
+                Clear
+              </button>
+              <button className="ghost" onClick={() => setShowNotesModal(false)}>
+                Close
               </button>
             </div>
           </div>
