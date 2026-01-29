@@ -181,19 +181,7 @@
 }
 
 .icon.pulse svg {
-  animation: pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.55;
-  }
+  animation: none;
 }
 
 .action-tag {
@@ -362,6 +350,35 @@
   gap: 6px;
   font-weight: 700;
   margin: 10px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.severity-critical {
+  color: #9b2c2c;
+}
+
+.severity-high {
+  color: #b7791f;
+}
+
+.severity-medium {
+  color: #2f855a;
+}
+
+.severity-low {
+  color: #4a5568;
+}
+
+.bullet-line {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 6px;
+  margin: 0 0 6px;
+}
+
+.bullet {
+  color: var(--muted);
 }
 
 .copy-toast {

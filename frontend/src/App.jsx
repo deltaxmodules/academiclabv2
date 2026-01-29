@@ -115,6 +115,9 @@ function App() {
           <path d="M18 3v6h-6" />
         </>
       ),
+      dot: (
+        <circle cx="12" cy="12" r="4" />
+      ),
       copy: (
         <>
           <rect x="9" y="9" width="11" height="11" rx="2" />
@@ -146,33 +149,42 @@ function App() {
           const trimmed = line.trim();
           if (trimmed === "CRITICAL:") {
             return (
-              <div key={`line-${idx}`} className="severity-line">
-                <Icon name="alert" />
-                <span>CRITICAL:</span>
+              <div key={`line-${idx}`} className="severity-line severity-critical">
+                <Icon name="dot" />
+                <span>CRITICAL</span>
               </div>
             );
           }
           if (trimmed === "HIGH:") {
             return (
-              <div key={`line-${idx}`} className="severity-line">
-                <Icon name="warn" />
-                <span>HIGH:</span>
+              <div key={`line-${idx}`} className="severity-line severity-high">
+                <Icon name="dot" />
+                <span>HIGH</span>
               </div>
             );
           }
           if (trimmed === "MEDIUM:") {
             return (
-              <div key={`line-${idx}`} className="severity-line">
-                <Icon name="clock" />
-                <span>MEDIUM:</span>
+              <div key={`line-${idx}`} className="severity-line severity-medium">
+                <Icon name="dot" />
+                <span>MEDIUM</span>
               </div>
             );
           }
           if (trimmed === "LOW:") {
             return (
-              <div key={`line-${idx}`} className="severity-line">
-                <Icon name="check" />
-                <span>LOW:</span>
+              <div key={`line-${idx}`} className="severity-line severity-low">
+                <Icon name="dot" />
+                <span>LOW</span>
+              </div>
+            );
+          }
+          if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
+            const text = trimmed.replace(/^•\s?/, "").replace(/^-+\s?/, "");
+            return (
+              <div key={`line-${idx}`} className="bullet-line">
+                <span className="bullet">•</span>
+                <span>{text}</span>
               </div>
             );
           }
@@ -592,7 +604,7 @@ function App() {
                 <div key={msg.id} className={`bubble ${msg.role}`}>
                   <div className="bubble-header">
                     <span>
-                      {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" className="pulse" />}
+                      {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" />}
                       {msg.role === "user" ? "You" : "Tutor"}
                     </span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
