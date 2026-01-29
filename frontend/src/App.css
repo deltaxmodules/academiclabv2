@@ -253,6 +253,21 @@
   min-height: 44px;
 }
 
+.toggle-button {
+  border-radius: 999px;
+  border: 1px solid rgba(34, 105, 171, 0.4);
+  background: #f1f6ff;
+  color: #2269ab;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle-button.active {
+  background: #2269ab;
+  color: #ffffff;
+}
+
 .chat-input button {
   border-radius: 999px;
   border: none;

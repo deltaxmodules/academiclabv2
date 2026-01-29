@@ -23,6 +23,7 @@ function App() {
   const [notesIndex, setNotesIndex] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [responseStyle, setResponseStyle] = useState("fast");
+  const [expertMode, setExpertMode] = useState(false);
 
   const statusLabel = useMemo(() => {
     if (status === "connected") return "Connected";
@@ -308,7 +309,8 @@ function App() {
       { id: `${Date.now()}-${prev.length}`, role: "user", content: userMessage },
     ]);
 
-    wsRef.current.send(JSON.stringify({ message: userMessage }));
+    const payloadMessage = expertMode ? `expert: ${userMessage}` : userMessage;
+    wsRef.current.send(JSON.stringify({ message: payloadMessage }));
   };
 
   const handleOpenReupload = () => {
@@ -577,10 +579,6 @@ function App() {
 
             {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
-            <p className="input-hint">
-              Tip: use <strong>expert:</strong> at the start of your message to get a technical answer.
-            </p>
-
             <div className="chat-input">
               <textarea
                 value={input}
@@ -589,6 +587,14 @@ function App() {
                 disabled={loading || status !== "connected"}
                 rows={2}
               />
+              <button
+                className={expertMode ? "toggle-button active" : "toggle-button"}
+                type="button"
+                onClick={() => setExpertMode((prev) => !prev)}
+                disabled={loading || status !== "connected"}
+              >
+                Expert
+              </button>
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
                 Send
               </button>
