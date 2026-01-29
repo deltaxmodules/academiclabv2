@@ -354,9 +354,18 @@
   letter-spacing: 0.04em;
 }
 
-.severity-critical,
-.severity-high,
-.severity-medium,
+.severity-critical {
+  color: #9b2c2c;
+}
+
+.severity-high {
+  color: #b7791f;
+}
+
+.severity-medium {
+  color: #2f855a;
+}
+
 .severity-low {
   color: #4a5568;
 }
