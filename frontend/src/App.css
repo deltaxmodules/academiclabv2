@@ -273,6 +273,20 @@
   gap: 12px;
 }
 
+.warning-box {
+  margin-top: 12px;
+  background: #fff4d6;
+  border: 1px solid #f1c870;
+  color: #7a5b1c;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.warning-box p {
+  margin: 6px 0 0;
+}
+
 .threshold-control {
   display: grid;
   gap: 6px;

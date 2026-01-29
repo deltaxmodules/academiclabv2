@@ -463,6 +463,7 @@ async def provide_context(session_id: str, problem_id: str, payload: Dict = Body
             "success": True,
             "message": "✅ Context saved. Analysis updated.",
             "active_problems": _active_problem_ids(state),
+            "outlier_warnings": state.get("csv_stats", {}).get("outlier_warnings", {}),
         }
     )
 
@@ -499,6 +500,7 @@ async def set_threshold(session_id: str, threshold_name: str, payload: Dict = Bo
             "message": f"✅ Threshold updated: {threshold_name} = {value}",
             "active_problems": _active_problem_ids(state),
             "thresholds": state.get("thresholds", {}),
+            "outlier_warnings": state.get("csv_stats", {}).get("outlier_warnings", {}),
         }
     )
 

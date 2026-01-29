@@ -35,6 +35,13 @@ function App() {
     return "🕒 Waiting";
   }, [status]);
 
+  const outlierWarnings = useMemo(() => {
+    const warningsByCol = csvInfo?.outlier_warnings || {};
+    return Object.entries(warningsByCol).flatMap(([col, warnings]) =>
+      (warnings || []).map((warning) => `${col}: ${warning}`)
+    );
+  }, [csvInfo]);
+
   const connectWebSocket = (sid) => {
     setStatus("connecting");
     wsRef.current = new WebSocket(`${WS_URL}/chat/${sid}`);
@@ -237,6 +244,12 @@ function App() {
         if (Array.isArray(data.active_problems)) {
           setActiveProblems(data.active_problems);
         }
+        if (data.outlier_warnings) {
+          setCsvInfo((prev) => ({
+            ...(prev || {}),
+            outlier_warnings: data.outlier_warnings,
+          }));
+        }
         setShowContextModal(false);
       } else {
         setStatus("error");
@@ -274,6 +287,12 @@ function App() {
         ]);
         if (Array.isArray(data.active_problems)) {
           setActiveProblems(data.active_problems);
+        }
+        if (data.outlier_warnings) {
+          setCsvInfo((prev) => ({
+            ...(prev || {}),
+            outlier_warnings: data.outlier_warnings,
+          }));
         }
       } else {
         setStatus("error");
@@ -419,6 +438,14 @@ function App() {
                     />
                   </div>
                 </div>
+                {outlierWarnings.length > 0 && (
+                  <div className="warning-box">
+                    <strong>⚠ Context warnings:</strong>
+                    {outlierWarnings.map((warning, idx) => (
+                      <p key={`${warning}-${idx}`}>{warning}</p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </section>

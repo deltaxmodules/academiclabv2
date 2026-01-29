@@ -29,3 +29,6 @@ dist/
 
 # Uploads
 backend/uploads/
+
+.github/CODEOWNERS
+MY_TASK.md
