@@ -197,6 +197,11 @@
   background: var(--accent-soft);
 }
 
+.bubble.assistant.expert {
+  background: #eef4ff;
+  border: 1px solid #7aa2e6;
+}
+
 .bubble-header {
   display: flex;
   justify-content: space-between;

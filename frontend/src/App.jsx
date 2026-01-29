@@ -550,11 +550,14 @@ function App() {
             </div>
             <div className="chat-body">
               {messages.map((msg) => (
-                <div key={msg.id} className={`bubble ${msg.role}`}>
+                <div
+                  key={msg.id}
+                  className={`bubble ${msg.role}${msg.action === "expert_help" ? " expert" : ""}`}
+                >
                   <div className="bubble-header">
                     <span>
                       {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" />}
-                      {msg.role === "user" ? "You" : "Tutor"}
+                      {msg.role === "user" ? "You" : msg.action === "expert_help" ? "Expert" : "Tutor"}
                     </span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
                   </div>

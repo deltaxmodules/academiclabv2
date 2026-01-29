@@ -9,7 +9,6 @@ from nodes import (
     explain_problem_node,
     mark_problem_solved_node,
     route_next_step,
-    should_route_to_expert,
     show_examples_node,
     show_problems_node,
     validate_no_code_exec_node,
@@ -50,7 +49,9 @@ def _step_router(state: StudentState) -> str:
         term in last_user_text
         for term in ["example", "examples", "code", "snippet"]
     )
-    wants_expert = should_route_to_expert(last_user_text) if has_user_reply else False
+    wants_expert = bool(state.get("expert_requested"))
+    if wants_expert:
+        state["expert_requested"] = False
 
     if last_action in {"init", "upload"}:
         return "analyze_and_show"

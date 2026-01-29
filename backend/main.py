@@ -387,6 +387,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             message = payload.get("message", "")
             if isinstance(message, str) and message.lower().startswith("expert:"):
                 message = message[7:].strip()
+                state = STUDENT_SESSIONS[session_id]
+                state["expert_requested"] = True
+                STUDENT_SESSIONS[session_id] = state
+            else:
+                state = STUDENT_SESSIONS[session_id]
+                state["expert_requested"] = False
+                STUDENT_SESSIONS[session_id] = state
             state = STUDENT_SESSIONS[session_id]
             state["conversation"].append(
                 {"role": "user", "content": message, "timestamp": datetime.now()}
