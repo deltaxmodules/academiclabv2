@@ -285,25 +285,6 @@
   box-shadow: 0 8px 18px rgba(208, 122, 45, 0.25);
 }
 
-.accept-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: #e6efe9;
-  color: #2f6f4e;
-  cursor: pointer;
-  font-weight: 600;
-  border: 1px solid rgba(55, 120, 80, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.accept-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(46, 111, 78, 0.2);
-}
-
 .outline-button {
   display: inline-flex;
   align-items: center;
@@ -328,36 +309,6 @@
   border-color: #a63d2b !important;
 }
 
-.outlier-tools {
-  margin-top: 16px;
-  background: #fff9f3;
-  border: 1px solid rgba(208, 122, 45, 0.2);
-  border-radius: 16px;
-  padding: 16px;
-}
-
-.outlier-tools h4 {
-  margin: 0 0 12px;
-}
-
-.outlier-actions {
-  display: grid;
-  gap: 12px;
-}
-
-.warning-box {
-  margin-top: 12px;
-  background: #fff4d6;
-  border: 1px solid #f1c870;
-  color: #7a5b1c;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-}
-
-.warning-box p {
-  margin: 6px 0 0;
-}
 
 .code-block-wrapper {
   position: relative;
@@ -498,40 +449,6 @@
   }
 }
 
-.outlier-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.outlier-help {
-  margin: 8px 0 12px;
-  color: #5f4b37;
-}
-
-.chevron {
-  display: inline-block;
-  margin-right: 8px;
-  font-size: 1rem;
-  transform: rotate(0deg);
-  transition: transform 0.2s ease;
-}
-
-.chevron.open {
-  transform: rotate(90deg);
-}
-
-.warning-box {
-  background: #fff0c2;
-  border: 1px solid #e7b85e;
-  color: #6b4b10;
-  box-shadow: 0 6px 14px rgba(231, 184, 94, 0.2);
-}
-
-.threshold-control {
-  display: grid;
-  gap: 6px;
-}
 
 .modal-backdrop {
   position: fixed;
@@ -588,8 +505,7 @@
 }
 
 .reason-input,
-.text-input,
-.select-input {
+.text-input {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -598,18 +514,6 @@
   margin: 8px 0 12px;
   resize: vertical;
   font-family: inherit;
-}
-
-.field-label {
-  font-weight: 600;
-  display: block;
-  margin-top: 8px;
-}
-
-.range-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
 }
 
 @media (max-width: 720px) {
@@ -630,13 +534,8 @@
     justify-content: center;
   }
 
-  .accept-button,
   .outline-button {
     width: 100%;
     justify-content: center;
-  }
-
-  .range-grid {
-    grid-template-columns: 1fr;
   }
 }

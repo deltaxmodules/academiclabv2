@@ -123,8 +123,6 @@ def _build_chk001_report(stats: Dict) -> Dict:
 def show_problems_node(state: StudentState) -> StudentState:
     """Show detected problems grouped by severity."""
     output = "Hi! I analyzed your dataset and found issues:\n\n"
-    dismissed = set(state.get("problems_dismissed", {}).keys())
-
     by_severity: Dict[str, List[Dict]] = {}
     for problem in state["problems_detected"]:
         sev = problem.get("severity", "MEDIUM")
@@ -135,8 +133,7 @@ def show_problems_node(state: StudentState) -> StudentState:
             continue
         output += f"{severity}:\n"
         for p in by_severity[severity]:
-            suffix = " (dismissed)" if p.get("problem_id") in dismissed else ""
-            output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}{suffix}\n"
+            output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}\n"
         output += "\n"
 
     output += "Which issue would you like to explore first?\n"
@@ -654,12 +651,10 @@ def route_next_step(state: StudentState) -> str:
             return "explain_again"
         return "mark_solved"
 
-    dismissed = set(state.get("problems_dismissed", {}).keys())
     problems_remaining = [
         p
         for p in state["problems_detected"]
         if p["problem_id"] not in state["problems_solved"]
-        and p["problem_id"] not in dismissed
     ]
 
     if not problems_remaining:

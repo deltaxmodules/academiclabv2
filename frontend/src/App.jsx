@@ -12,15 +12,9 @@ function App() {
   const [status, setStatus] = useState("idle");
   const [loading, setLoading] = useState(false);
   const [reuploadReady, setReuploadReady] = useState(false);
-  const [activeProblems, setActiveProblems] = useState([]);
-  const [thresholds, setThresholds] = useState({ outlier_sensitivity: 3.0 });
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
   const [showReuploadModal, setShowReuploadModal] = useState(false);
-  const [showDismissModal, setShowDismissModal] = useState(false);
-  const [showContextModal, setShowContextModal] = useState(false);
-  const [dismissReason, setDismissReason] = useState("");
-  const [showOutlierTools, setShowOutlierTools] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
   const [showTechHelpModal, setShowTechHelpModal] = useState(false);
   const [techHelpText, setTechHelpText] = useState("");
@@ -31,13 +25,6 @@ function App() {
   const [notesIndex, setNotesIndex] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [responseStyle, setResponseStyle] = useState("fast");
-  const [contextData, setContextData] = useState({
-    column: "",
-    dataset_type: "",
-    min_expected: "",
-    max_expected: "",
-    explanation: "",
-  });
 
   const statusLabel = useMemo(() => {
     if (status === "connected") return "Connected";
@@ -140,12 +127,6 @@ function App() {
     );
   };
 
-  const outlierWarnings = useMemo(() => {
-    const warningsByCol = csvInfo?.outlier_warnings || {};
-    return Object.entries(warningsByCol).flatMap(([col, warnings]) =>
-      (warnings || []).map((warning) => `${col}: ${warning}`)
-    );
-  }, [csvInfo]);
 
   const renderTextBlock = (text) => {
     const lines = text.split("\n");
@@ -252,12 +233,6 @@ function App() {
             action: payload.action,
           },
         ]);
-        if (Array.isArray(payload.active_problems)) {
-          setActiveProblems(payload.active_problems);
-        }
-        if (payload.thresholds) {
-          setThresholds(payload.thresholds);
-        }
         if (
           payload.reupload_required ||
           payload.action === "mark_solved" ||
@@ -312,12 +287,6 @@ function App() {
           connectWebSocket(data.session_id);
         }
         setReuploadReady(false);
-        if (Array.isArray(data.active_problems)) {
-          setActiveProblems(data.active_problems);
-        }
-        if (data.thresholds) {
-          setThresholds(data.thresholds);
-        }
       } else {
         setStatus("error");
       }
@@ -378,12 +347,6 @@ function App() {
     setSelectedNoteId(id);
     setShowNotesModal(false);
   };
-
-  useEffect(() => {
-    if (!showNotesModal) return;
-    const id = selectedNoteId || "draft";
-    localStorage.setItem(`academiclab_notes_draft_${id}`, notesText);
-  }, [notesText, showNotesModal, selectedNoteId]);
 
   useEffect(() => {
     if (!showNotesModal) return;
@@ -468,8 +431,6 @@ function App() {
             action: "reset",
           },
         ]);
-        setActiveProblems([]);
-        setThresholds({ outlier_sensitivity: 3.0 });
         setReuploadReady(false);
         setShowResetModal(false);
         if (wsRef.current) {
@@ -487,152 +448,6 @@ function App() {
     }
   };
 
-  const handleOpenDismiss = () => {
-    setDismissReason("");
-    setShowDismissModal(true);
-  };
-
-  const handleOpenContext = () => {
-    setContextData({
-      column: csvInfo?.column_names?.[0] || "",
-      dataset_type: "",
-      min_expected: "",
-      max_expected: "",
-      explanation: "",
-    });
-    setShowContextModal(true);
-  };
-
-  const handleDismissOutliers = async () => {
-    if (!dismissReason.trim()) return;
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_URL}/session/${sessionId}/dismiss-problem/P03`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reason: dismissReason.trim() }),
-        }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `${Date.now()}-dismiss`,
-            role: "assistant",
-            content: data.message,
-            action: "dismiss_problem",
-          },
-        ]);
-        if (Array.isArray(data.active_problems)) {
-          setActiveProblems(data.active_problems);
-        }
-        setShowDismissModal(false);
-      } else {
-        setStatus("error");
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus("error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveContext = async () => {
-    if (!contextData.explanation.trim() || !contextData.column) return;
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_URL}/session/${sessionId}/problem/P03/context`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            column: contextData.column,
-            dataset_type: contextData.dataset_type,
-            min_expected: contextData.min_expected || null,
-            max_expected: contextData.max_expected || null,
-            explanation: contextData.explanation.trim(),
-          }),
-        }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `${Date.now()}-context`,
-            role: "assistant",
-            content: data.message,
-            action: "context",
-          },
-        ]);
-        if (Array.isArray(data.active_problems)) {
-          setActiveProblems(data.active_problems);
-        }
-        if (data.outlier_warnings) {
-          setCsvInfo((prev) => ({
-            ...(prev || {}),
-            outlier_warnings: data.outlier_warnings,
-          }));
-        }
-        setShowContextModal(false);
-      } else {
-        setStatus("error");
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus("error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSensitivityChange = async (value) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_URL}/session/${sessionId}/threshold/outlier_sensitivity`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ value }),
-        }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setThresholds(data.thresholds || {});
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `${Date.now()}-threshold`,
-            role: "assistant",
-            content: data.message,
-            action: "threshold",
-          },
-        ]);
-        if (Array.isArray(data.active_problems)) {
-          setActiveProblems(data.active_problems);
-        }
-        if (data.outlier_warnings) {
-          setCsvInfo((prev) => ({
-            ...(prev || {}),
-            outlier_warnings: data.outlier_warnings,
-          }));
-        }
-      } else {
-        setStatus("error");
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus("error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     return () => {
@@ -808,59 +623,6 @@ function App() {
               </button>
             </div>
 
-            {activeProblems.includes("P03") && (
-              <div className="outlier-tools">
-                <div className="outlier-header">
-                  <h4>Outliers controls</h4>
-                  <button
-                    className="outline-button"
-                    type="button"
-                    onClick={() => setShowOutlierTools((prev) => !prev)}
-                  >
-                    <span className={`chevron ${showOutlierTools ? "open" : ""}`}>›</span>
-                    {showOutlierTools ? "Hide details" : "Show details"}
-                  </button>
-                </div>
-                {showOutlierTools && (
-                  <>
-                    <p className="outlier-help">
-                      Use these controls if outliers look like false alarms, or if you need more or
-                      less sensitivity. Context ranges override the sensitivity slider.
-                    </p>
-                    <div className="outlier-actions">
-                      <button className="accept-button" onClick={handleOpenDismiss} disabled={loading}>
-                        Mark as false alarm
-                      </button>
-                      <button className="outline-button" onClick={handleOpenContext} disabled={loading}>
-                        Provide domain context
-                      </button>
-                      <div className="threshold-control">
-                        <label>
-                          Sensitivity: {Number(thresholds.outlier_sensitivity || 3).toFixed(1)}
-                        </label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          step="0.5"
-                          value={thresholds.outlier_sensitivity || 3}
-                          onChange={(e) => handleSensitivityChange(parseFloat(e.target.value))}
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
-                    {outlierWarnings.length > 0 && (
-                      <div className="warning-box">
-                    <strong><Icon name="warn" /> Context warnings:</strong>
-                        {outlierWarnings.map((warning, idx) => (
-                          <p key={`${warning}-${idx}`}>{warning}</p>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
           </section>
         )}
       </main>
@@ -887,109 +649,6 @@ function App() {
         </div>
       )}
 
-      {showDismissModal && sessionId && (
-        <div className="modal-backdrop" onClick={() => setShowDismissModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3><Icon name="check" /> Mark outliers as false alarm</h3>
-            <p>Explain why these outliers are valid for your dataset.</p>
-            <textarea
-              className="reason-input"
-              placeholder="Example: These are premium customers with legitimate high values..."
-              value={dismissReason}
-              onChange={(e) => setDismissReason(e.target.value)}
-              rows={4}
-            />
-            <div className="modal-actions">
-              <button
-                className="upload-button"
-                onClick={handleDismissOutliers}
-                disabled={loading || !dismissReason.trim()}
-              >
-                Confirm
-              </button>
-              <button className="ghost" onClick={() => setShowDismissModal(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showContextModal && sessionId && (
-        <div className="modal-backdrop" onClick={() => setShowContextModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3><Icon name="help" /> Provide domain context</h3>
-            <p>Explain the expected range for this column.</p>
-            <label className="field-label">Column</label>
-            <select
-              className="select-input"
-              value={contextData.column}
-              onChange={(e) => setContextData({ ...contextData, column: e.target.value })}
-            >
-              {(csvInfo?.column_names || []).map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-            <label className="field-label">Dataset type (optional)</label>
-            <input
-              className="text-input"
-              value={contextData.dataset_type}
-              onChange={(e) =>
-                setContextData({ ...contextData, dataset_type: e.target.value })
-              }
-              placeholder="e.g., airline_prices"
-            />
-            <div className="range-grid">
-              <div>
-                <label className="field-label">Min expected</label>
-                <input
-                  className="text-input"
-                  type="number"
-                  value={contextData.min_expected}
-                  onChange={(e) =>
-                    setContextData({ ...contextData, min_expected: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="field-label">Max expected</label>
-                <input
-                  className="text-input"
-                  type="number"
-                  value={contextData.max_expected}
-                  onChange={(e) =>
-                    setContextData({ ...contextData, max_expected: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <label className="field-label">Explanation</label>
-            <textarea
-              className="reason-input"
-              placeholder="Why is this range valid?"
-              value={contextData.explanation}
-              onChange={(e) =>
-                setContextData({ ...contextData, explanation: e.target.value })
-              }
-              rows={4}
-            />
-            <div className="modal-actions">
-              <button
-                className="upload-button"
-                onClick={handleSaveContext}
-                disabled={loading || !contextData.explanation.trim()}
-              >
-                Save context
-              </button>
-              <button className="ghost" onClick={() => setShowContextModal(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showTechHelpModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowTechHelpModal(false)}>

@@ -34,17 +34,12 @@ class StudentState(TypedDict):
     csv_filename: str
     csv_stats: Dict
     csv_version: int
-    csv_bytes: Optional[bytes]
-
     # Problems
     problems_detected: List[Problem]
     current_problem: Optional[str]
 
     # Progress
     problems_solved: List[str]
-    problems_dismissed: Dict[str, Dict]
-    context_by_column: Dict[str, Dict]
-    thresholds: Dict[str, float]
     checklist_status: Dict[str, bool]
     checklist_report: Dict[str, Dict]
 
@@ -89,17 +84,9 @@ def create_initial_state(
         csv_stats=csv_stats,
         csv_path=None,
         csv_version=1,
-        csv_bytes=None,
         problems_detected=[],
         current_problem=None,
         problems_solved=[],
-        problems_dismissed={},
-        context_by_column={},
-        thresholds={
-            "outlier_sensitivity": 3.0,
-            "missing_threshold": 0.5,
-            "duplicate_threshold": 1.0,
-        },
         checklist_status={},
         checklist_report={},
         understanding_level="beginner",

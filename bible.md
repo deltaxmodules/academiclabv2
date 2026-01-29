@@ -72,32 +72,12 @@ Quando o aluno envia um CSV atualizado:
 2. Compara a lista de problemas antes e depois.
 3. Diz claramente o que foi resolvido e o que ainda falta.
 
-#### **6. Outliers: 3 soluções integradas**
-Para o problema P03 (outliers), o aluno tem três maneiras de lidar:
+#### **6. Estilo de resposta (rápido ou detalhado)**
+O aluno pode escolher a forma de resposta:
+- **Rápida (default)** → respostas mais curtas e diretas
+- **Detalhada** → respostas mais completas e explicativas
 
-1. **Dismiss (false alarm)**
-   - O aluno diz: “estes outliers são normais no meu domínio”.
-   - O backend marca como “resolvido por decisão”.
-
-2. **Contexto de domínio**
-   - O aluno dá contexto do que é normal (ex: valores esperados entre 10 e 1000).
-   - O backend recalcula os outliers usando esse contexto.
-   - Se o contexto for estranho (ex: intervalo não cobre os dados), o backend **avisa**.
-
-3. **Threshold (sensibilidade)**
-   - O aluno ajusta quão sensível é o detector.
-   - Sensibilidade alta = muitos outliers
-   - Sensibilidade baixa = menos outliers
-
-**Regra principal:** se existir contexto (min/max), ele tem prioridade sobre a sensibilidade.
-
-#### **7. Avisos educacionais**
-Se o aluno fornece contexto que não faz sentido com os dados:
-- O backend não bloqueia (é educativo)
-- Apenas avisa com uma mensagem clara
-
-Exemplo:
-“⚠ O intervalo [150, 200] não cobre nenhum valor real do dataset.”
+O backend guarda essa preferência na sessão e ajusta o tutor e o especialista de acordo.
 
 ---
 
@@ -142,35 +122,27 @@ Pense no frontend como a sala de aula, onde o aluno interage com o tutor.
 - Abre um modal com instruções simples
 - O aluno faz as correções no Jupyter e envia o novo CSV
 
-#### **4. Controlo de outliers (P03)**
-Se o problema P03 existir, o frontend mostra um painel especial:
+#### **4. Estilo de resposta (Rápida vs Detalhada)**
+Na página principal existe um seletor com dois níveis:
+- **Fast (default)** → respostas curtas e objetivas
+- **Detailed** → respostas mais completas
 
-- **Botão “Mark as false alarm”**
-  → o aluno explica por que é normal
+O aluno pode trocar a qualquer momento.
 
-- **Botão “Provide domain context”**
-  → o aluno explica o intervalo normal (min/max)
+#### **5. Notas pessoais (bloco de notas)**
+Existe um botão de **Notes** que abre um painel de anotações:
+- O aluno pode criar várias notas
+- Cada nota tem título
+- As notas são **guardadas localmente** no navegador
+- Dá para exportar uma nota como `.txt`
 
-- **Slider de sensibilidade**
-  → ajusta a detecção de outliers
+Isso ajuda o aluno a guardar explicações ou resumo das aulas.
 
-Este painel vem **fechado** por padrão e pode ser aberto/fechado pelo aluno.
-Ao abrir, existe um texto curto a explicar para que serve cada opção.
-
-E se houver warnings (ex: intervalo estranho), aparecem logo abaixo:
-
-“⚠ Context warnings: …”
-
-#### **5. Feedback imediato**
-Sempre que o aluno:
-- Dismiss
-- Dá contexto
-- Muda sensibilidade
-
-O frontend:
-- Atualiza o chat
-- Mostra o próximo problema
-- Mostra avisos, se necessário
+#### **6. Recomeçar do zero**
+Existe um botão “Start new session”.
+Quando o aluno clica, aparece um **modal de confirmação**:
+- “Tem a certeza? Os dados da sessão serão perdidos.”
+Se confirmar, o frontend limpa o chat e cria uma nova sessão no backend.
 
 #### **6. Recomeçar do zero**
 - Existe um botão “Start new session”
@@ -180,7 +152,7 @@ O frontend:
 ---
 
 ### Resumo do frontend em 1 frase
-**O frontend permite que o aluno envie CSVs, converse com o tutor e tome decisões (dismiss/contexto/sensibilidade) de forma simples e visual.**
+**O frontend permite enviar CSVs, conversar com o tutor, alternar o nível de detalhe das respostas, guardar notas pessoais e recomeçar a sessão com segurança.**
 
 ---
 
