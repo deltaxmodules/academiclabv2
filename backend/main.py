@@ -340,6 +340,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     old_state["conversation"] = []
     old_state["last_response"] = ""
     old_state["last_action"] = "upload"
+    old_state["last_action_forced"] = None
     old_state["messages_count"] = 0
     old_state["guardrail_failed"] = False
     old_state["guardrail_reason"] = None
