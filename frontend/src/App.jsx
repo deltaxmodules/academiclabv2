@@ -22,6 +22,8 @@ function App() {
   const [dismissReason, setDismissReason] = useState("");
   const [showOutlierTools, setShowOutlierTools] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
+  const [showTechHelpModal, setShowTechHelpModal] = useState(false);
+  const [techHelpText, setTechHelpText] = useState("");
   const [contextData, setContextData] = useState({
     column: "",
     dataset_type: "",
@@ -48,6 +50,7 @@ function App() {
     const parts = content.split("```");
     return parts.map((part, idx) => {
       if (idx % 2 === 1) {
+        const cleaned = part.trim().replace(/^python\\s*\\n/i, "");
         return (
           <div key={`code-${idx}`} className="code-block-wrapper">
             <div className="code-label">Code</div>
@@ -55,14 +58,14 @@ function App() {
               className="copy-button"
               type="button"
               onClick={() => {
-                navigator.clipboard.writeText(part.trim());
+                navigator.clipboard.writeText(cleaned.trim());
                 setCopyNotice("Code copied to clipboard");
                 setTimeout(() => setCopyNotice(""), 2000);
               }}
             >
               Copy
             </button>
-            <pre className="code-block">{part.trim()}</pre>
+            <pre className="code-block">{cleaned.trim()}</pre>
           </div>
         );
       }
@@ -445,14 +448,8 @@ function App() {
                 className="outline-button"
                 type="button"
                 onClick={() => {
-                  if (!wsRef.current) return;
-                  const msg = "I need technical help with this problem.";
-                  setMessages((prev) => [
-                    ...prev,
-                    { id: `${Date.now()}-expert`, role: "user", content: msg },
-                  ]);
-                  wsRef.current.send(JSON.stringify({ message: msg }));
-                  setLoading(true);
+                  setTechHelpText("");
+                  setShowTechHelpModal(true);
                 }}
                 disabled={loading || status !== "connected"}
               >
@@ -643,6 +640,44 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 ✅ Save context
               </button>
               <button className="ghost" onClick={() => setShowContextModal(false)}>
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTechHelpModal && sessionId && (
+        <div className="modal-backdrop" onClick={() => setShowTechHelpModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>🧠 Ask for technical help</h3>
+            <p>Describe your question so the tutor can answer like a data science expert.</p>
+            <textarea
+              className="reason-input"
+              placeholder="Example: I tried to remove outliers with IQR but got too many rows removed..."
+              value={techHelpText}
+              onChange={(e) => setTechHelpText(e.target.value)}
+              rows={4}
+            />
+            <div className="modal-actions">
+              <button
+                className="upload-button"
+                onClick={() => {
+                  if (!wsRef.current || !techHelpText.trim()) return;
+                  const msg = techHelpText.trim();
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: `${Date.now()}-expert`, role: "user", content: msg },
+                  ]);
+                  wsRef.current.send(JSON.stringify({ message: msg }));
+                  setLoading(true);
+                  setShowTechHelpModal(false);
+                }}
+                disabled={loading || !techHelpText.trim()}
+              >
+                ✅ Send question
+              </button>
+              <button className="ghost" onClick={() => setShowTechHelpModal(false)}>
                 ❌ Cancel
               </button>
             </div>
