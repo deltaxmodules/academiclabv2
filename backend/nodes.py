@@ -338,71 +338,32 @@ def expert_help_node(state: StudentState) -> StudentState:
     student_message = state["conversation"][-1]["content"]
     msg_lower = student_message.lower()
 
-    # If the student already shared outlier rows, answer directly without restating the method.
-    if "outliers in" in msg_lower or "output is truncated" in msg_lower:
-        templates = {
-            "Portuguese": (
-                "Isto parece um padrão de valores impossíveis (ex.: BloodPressure=0), "
-                "que normalmente significam dados ausentes e não outliers reais. "
-                "O próximo passo é tratar esses zeros como missing, imputar ou remover, "
-                "e só depois repetir a detecção de outliers.\n\n"
-                "Próximos passos:\n"
-                "- Substituir 0 por NaN em BloodPressure e reavaliar\n"
-                "- Validar se os restantes outliers são clinicamente plausíveis\n"
-                "Checklist: CHK-001"
-            ),
-            "Spanish": (
-                "Esto parece un patrón de valores imposibles (p. ej., BloodPressure=0), "
-                "que normalmente indica datos ausentes, no outliers reales. "
-                "El siguiente paso es tratar esos ceros como missing, imputar o eliminar, "
-                "y luego repetir la detección de outliers.\n\n"
-                "Siguientes pasos:\n"
-                "- Sustituir 0 por NaN en BloodPressure y reevaluar\n"
-                "- Validar si los outliers restantes son plausibles clínicamente\n"
-                "Checklist: CHK-001"
-            ),
-            "Italian": (
-                "Qui sembra un pattern di valori impossibili (es. BloodPressure=0), "
-                "che di solito indica dati mancanti, non veri outlier. "
-                "Il prossimo passo è trattare questi zeri come missing, imputare o rimuovere, "
-                "e poi rifare la rilevazione degli outlier.\n\n"
-                "Prossimi passi:\n"
-                "- Sostituire 0 con NaN in BloodPressure e rivalutare\n"
-                "- Verificare se gli outlier rimanenti sono clinicamente plausibili\n"
-                "Checklist: CHK-001"
-            ),
-            "French": (
-                "Cela ressemble à un schéma de valeurs impossibles (ex. BloodPressure=0), "
-                "qui indiquent généralement des données manquantes, pas de vrais outliers. "
-                "L’étape suivante est de traiter ces zéros comme des valeurs manquantes, "
-                "imputer ou supprimer, puis relancer la détection d’outliers.\n\n"
-                "Prochaines étapes :\n"
-                "- Remplacer 0 par NaN dans BloodPressure et réévaluer\n"
-                "- Vérifier si les outliers restants sont plausibles cliniquement\n"
-                "Checklist : CHK-001"
-            ),
-            "German": (
-                "Das sieht nach einem Muster unmöglicher Werte aus (z. B. BloodPressure=0), "
-                "was meist fehlende Werte bedeutet und keine echten Ausreißer. "
-                "Der nächste Schritt ist, diese Nullen als Missing zu behandeln, zu imputieren "
-                "oder zu entfernen und danach die Ausreißer erneut zu prüfen.\n\n"
-                "Nächste Schritte:\n"
-                "- 0 in BloodPressure durch NaN ersetzen und neu bewerten\n"
-                "- Prüfen, ob die übrigen Ausreißer klinisch plausibel sind\n"
-                "Checklist: CHK-001"
-            ),
-            "English": (
-                "This looks like a pattern of impossible values (e.g., BloodPressure=0), "
-                "which usually indicates missing data, not true outliers. "
-                "Next, treat those zeros as missing, impute or remove them, "
-                "then re-run outlier detection.\n\n"
-                "Next steps:\n"
-                "- Replace 0 with NaN in BloodPressure and re-evaluate\n"
-                "- Validate whether remaining outliers are clinically plausible\n"
-                "Checklist: CHK-001"
-            ),
-        }
-        output = templates.get(target_lang, templates["English"])
+    # Gate: only respond as expert to data science questions.
+    domain_prompt = (
+        "Answer ONLY 'YES' or 'NO'. "
+        "Is the user's message a data science / data analysis / ML / statistics question "
+        "that expects technical guidance?"
+    )
+    try:
+        domain_resp = _get_llm().invoke(
+            [
+                {"role": "system", "content": domain_prompt},
+                {"role": "user", "content": student_message},
+            ]
+        )
+        is_ds = domain_resp.content.strip().lower().startswith("y")
+    except Exception:
+        is_ds = True
+
+    if not is_ds:
+        output = {
+            "Portuguese": "Posso ajudar apenas com dúvidas técnicas de data science relacionadas com o exercício.",
+            "Spanish": "Solo puedo ayudar con dudas técnicas de data science relacionadas con el ejercicio.",
+            "Italian": "Posso aiutare solo con dubbi tecnici di data science legati all'esercizio.",
+            "French": "Je peux aider uniquement avec des questions techniques de data science liées à l’exercice.",
+            "German": "Ich kann nur bei technischen Data-Science-Fragen zum Thema helfen.",
+            "English": "I can only help with technical data science questions related to the task.",
+        }.get(target_lang, "I can only help with technical data science questions related to the task.")
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "expert_help"
@@ -454,9 +415,18 @@ OUTPUT FORMAT:
             "suggest cleaning steps, and what to do next with those rows."
         )
 
+    recent_tutor = [
+        m.get("content", "")
+        for m in state.get("conversation", [])
+        if m.get("role") == "assistant"
+    ][-3:]
+
     user_prompt = f"""
 Problem: {problem_id} - {problem_detail.get('name')}
 Student message: {student_message}
+
+Tutor context (recent):
+{chr(10).join(recent_tutor) if recent_tutor else "N/A"}
 
 Conversation context:
 - Understanding level: {state['understanding_level']}

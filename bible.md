@@ -123,6 +123,8 @@ Pense no frontend como a sala de aula, onde o aluno interage com o tutor.
 - Exemplo: `expert: preciso de um exemplo em Python para imputação`
 - Isso força o modo especialista nessa resposta
 
+**Nota:** o especialista responde apenas a dúvidas técnicas de data science.
+
 #### **3. Reupload (nova versão do CSV)**
 - O aluno clica em “Re-evaluate CSV”
 - Abre um modal com instruções simples
