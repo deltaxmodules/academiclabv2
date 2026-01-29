@@ -274,6 +274,101 @@ Explain in an educational way. The student will solve it on their own.
     return state
 
 
+def expert_help_node(state: StudentState) -> StudentState:
+    """Provide a technical, expert-level answer with Python code and opinion."""
+    problem_id = state.get("current_problem")
+    if not problem_id:
+        output = "❌ No problem selected. Please choose one."
+        state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
+        state["last_response"] = output
+        state["last_action"] = "expert_help"
+        state["timestamp_last_update"] = _now()
+        return state
+
+    problem_detail = lookup_problem(problem_id)
+    if not problem_detail:
+        output = f"❌ Problem {problem_id} was not found in the framework."
+        state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
+        state["last_response"] = output
+        state["last_action"] = "expert_help"
+        state["timestamp_last_update"] = _now()
+        return state
+
+    checklist_ref = problem_detail.get("checklist_ref", "CHK-001")
+    checklist_item = lookup_checklist_item(checklist_ref)
+    checklist_text = ""
+    if checklist_item:
+        checklist_text = (
+            f"{checklist_item.get('chk_id')}: {checklist_item.get('task')} - "
+            f"{checklist_item.get('description')}"
+        )
+
+    system_prompt = """
+You are a senior DATA SCIENCE SPECIALIST and teacher.
+
+RULES:
+❌ Never execute code or claim execution
+✅ Be technical but clear
+✅ Provide a short Python code example (formatted)
+✅ Give an expert opinion on trade-offs and when to choose each option
+✅ Keep it concise and actionable
+
+OUTPUT FORMAT:
+1) Technical diagnosis (2-4 sentences)
+2) Practical recommendation (bullet points)
+3) Python example (short)
+4) Expert opinion (when/why, pitfalls)
+5) Checklist reference
+"""
+
+    p01_context = ""
+    if problem_id == "P01":
+        missing_types = state.get("csv_stats", {}).get("missing_types", {})
+        missing_pct = state.get("csv_stats", {}).get("missing_percentage", {})
+        col = None
+        for item in state.get("problems_detected", []):
+            if item.get("problem_id") == "P01":
+                col = item.get("column")
+                break
+        if col:
+            mtype = missing_types.get(col, "MCAR")
+            mpct = missing_pct.get(col, 0)
+            hint = _missing_action_hint(mpct, state.get("csv_stats", {}).get("rows", 0), mtype)
+            p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
+
+    user_prompt = f"""
+Problem: {problem_id} - {problem_detail.get('name')}
+Student message: {state['conversation'][-1]['content']}
+
+Context:
+- Understanding level: {state['understanding_level']}
+- Already solved: {state['problems_solved']}
+- Attempts on this problem: {state['attempts_current_problem']}
+
+Framework:
+{json.dumps(problem_detail, ensure_ascii=False, indent=2)}
+
+Checklist: {checklist_ref}
+Checklist detail: {checklist_text if checklist_text else 'N/A'}
+{p01_context}
+
+Respond as an expert with a short Python example and a clear opinion.
+"""
+
+    llm = _get_llm()
+    response = llm.invoke(
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+    )
+
+    state["conversation"].append({"role": "assistant", "content": response.content, "timestamp": _now()})
+    state["last_response"] = response.content
+    state["last_action"] = "expert_help"
+    state["timestamp_last_update"] = _now()
+    return state
+
 def _select_solution(problem_id: str, solutions: List[Dict], state: StudentState) -> Dict | None:
     """Pick the most appropriate solution (rules first, LLM fallback)."""
     if not solutions:

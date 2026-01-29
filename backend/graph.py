@@ -5,6 +5,7 @@ from langgraph.graph import END, StateGraph
 from nodes import (
     analyze_csv_node,
     ask_reflection_node,
+    expert_help_node,
     explain_problem_node,
     mark_problem_solved_node,
     route_next_step,
@@ -48,6 +49,24 @@ def _step_router(state: StudentState) -> str:
         term in last_user_text
         for term in ["example", "examples", "code", "snippet"]
     )
+    wants_expert = any(
+        term in last_user_text
+        for term in [
+            "help",
+            "can't",
+            "cannot",
+            "stuck",
+            "confused",
+            "don't understand",
+            "do not understand",
+            "nao consigo",
+            "não consigo",
+            "nao entendo",
+            "não entendo",
+            "ajuda",
+            "dificuldade",
+        ]
+    )
 
     if last_action in {"init", "upload"}:
         return "analyze_and_show"
@@ -58,9 +77,13 @@ def _step_router(state: StudentState) -> str:
     if last_action == "show_problems":
         if not state.get("current_problem"):
             return "await_user"
+        if wants_expert:
+            return "expert_help"
         return "show_examples" if wants_examples else "explain_problem"
 
     if last_action == "explain":
+        if wants_expert:
+            return "expert_help"
         return "show_examples" if wants_examples else "await_user"
 
     if last_action == "show_examples":
@@ -91,6 +114,7 @@ def create_agent_graph():
     graph.add_node("analyze_and_show", analyze_and_show_node)
     graph.add_node("show_problems", show_problems_node)
     graph.add_node("explain_problem", explain_problem_node)
+    graph.add_node("expert_help", expert_help_node)
     graph.add_node("show_examples", show_examples_node)
     graph.add_node("ask_reflection", ask_reflection_node)
     graph.add_node("validate_understanding", validate_understanding_node)
@@ -108,6 +132,7 @@ def create_agent_graph():
             "analyze_and_show": "analyze_and_show",
             "show_problems": "show_problems",
             "explain_problem": "explain_problem",
+            "expert_help": "expert_help",
             "ask_reflection": "ask_reflection",
             "validate_understanding": "validate_understanding",
             "mark_solved": "mark_solved",
@@ -120,6 +145,7 @@ def create_agent_graph():
     graph.add_edge("analyze_and_show", END)
     graph.add_edge("show_problems", END)
     graph.add_edge("explain_problem", "validate_no_code")
+    graph.add_edge("expert_help", "validate_no_code")
     graph.add_edge("validate_no_code", END)
     graph.add_edge("show_examples", END)
     graph.add_edge("ask_reflection", END)
