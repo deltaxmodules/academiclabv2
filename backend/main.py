@@ -354,18 +354,9 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     diff = _compare_problem_sets(before_state, state)
     resolved_list = sorted(diff["resolved"])
     remaining_list = sorted(diff["remaining"])
-    cols = stats.get("column_names", []) or []
-    cabin_present = "Cabin" in cols
-    cabin_missing = stats.get("missing_percentage", {}).get("Cabin")
     summary = f"📥 Reupload received: {file.filename}\n"
-    summary += f"🔎 Columns: {len(cols)} | Cabin present: {'yes' if cabin_present else 'no'}"
-    if cabin_present and cabin_missing is not None:
-        summary += f" (missing {cabin_missing:.1f}%)"
-    summary += "\n"
     if resolved_list:
         summary += f"✅ Resolved issue(s): {', '.join(resolved_list)}\n"
-    if remaining_list:
-        summary += f"⚠️ Still present: {', '.join(remaining_list)}\n"
     if summary.strip() == f"📥 Reupload received: {file.filename}":
         summary = f"📥 Reupload received: {file.filename}\nℹ️ No changes detected in the issues."
     if state.get("last_response"):
