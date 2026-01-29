@@ -669,7 +669,7 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                     ...prev,
                     { id: `${Date.now()}-expert`, role: "user", content: msg },
                   ]);
-                  wsRef.current.send(JSON.stringify({ message: msg }));
+                  wsRef.current.send(JSON.stringify({ message: msg, action: "expert_help" }));
                   setLoading(true);
                   setShowTechHelpModal(false);
                 }}

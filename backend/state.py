@@ -57,6 +57,7 @@ class StudentState(TypedDict):
     conversation: List[Message]
     last_response: str
     last_action: str
+    last_action_forced: Optional[str]
     messages_count: int
 
     # Guardrails
@@ -106,6 +107,7 @@ def create_initial_state(
         conversation=[],
         last_response="",
         last_action="init",
+        last_action_forced=None,
         messages_count=0,
         guardrail_failed=False,
         guardrail_reason=None,

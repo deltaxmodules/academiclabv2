@@ -515,6 +515,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             data = await websocket.receive_text()
             payload = json.loads(data)
             message = payload.get("message", "")
+            action = payload.get("action")
 
             state = STUDENT_SESSIONS[session_id]
             state["conversation"].append(
@@ -522,6 +523,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             )
             state["messages_count"] += 1
 
+            if action == "expert_help":
+                state["last_action"] = "explain"
+                state["last_action_forced"] = "expert_help"
             msg_lower = message.lower()
             if "list" in msg_lower or "issues" in msg_lower:
                 state["last_action"] = "analyze"

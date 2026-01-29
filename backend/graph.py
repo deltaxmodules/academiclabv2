@@ -41,6 +41,7 @@ def congratulations_node(state: StudentState) -> StudentState:
 def _step_router(state: StudentState) -> str:
     """Decide which step to run based on the current state."""
     last_action = state.get("last_action", "init")
+    forced = state.get("last_action_forced")
     last_message = state.get("conversation", [])[-1] if state.get("conversation") else None
     has_user_reply = bool(last_message and last_message.get("role") == "user")
     last_user_text = (last_message.get("content", "").lower() if has_user_reply else "")
@@ -67,6 +68,10 @@ def _step_router(state: StudentState) -> str:
             "dificuldade",
         ]
     )
+
+    if forced == "expert_help":
+        state["last_action_forced"] = None
+        return "expert_help"
 
     if last_action in {"init", "upload"}:
         return "analyze_and_show"
