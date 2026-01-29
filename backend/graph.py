@@ -26,8 +26,8 @@ def analyze_and_show_node(state: StudentState) -> StudentState:
 def congratulations_node(state: StudentState) -> StudentState:
     """Final message when all problems are solved."""
     message = (
-        "🎉 Congratulations! You completed all detected issues.\n\n"
-        "✅ Next steps:\n"
+        "Congratulations! You completed all detected issues.\n\n"
+        "Next steps:\n"
         "1. Apply the fixes locally\n"
         "2. Reanalyze your dataset\n"
         "3. Share the results with your instructor\n"

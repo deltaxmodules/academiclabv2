@@ -354,11 +354,11 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     diff = _compare_problem_sets(before_state, state)
     resolved_list = sorted(diff["resolved"])
     remaining_list = sorted(diff["remaining"])
-    summary = f"📥 Reupload received: {file.filename}\n"
+    summary = f"Reupload received: {file.filename}\n"
     if resolved_list:
-        summary += f"✅ Resolved issue(s): {', '.join(resolved_list)}\n"
-    if summary.strip() == f"📥 Reupload received: {file.filename}":
-        summary = f"📥 Reupload received: {file.filename}\nℹ️ No changes detected in the issues."
+        summary += f"Resolved issue(s): {', '.join(resolved_list)}\n"
+    if summary.strip() == f"Reupload received: {file.filename}":
+        summary = f"Reupload received: {file.filename}\nNo changes detected in the issues."
     if state.get("last_response"):
         state["last_response"] = summary.strip() + "\n\n" + state["last_response"]
     else:
@@ -406,7 +406,7 @@ async def reset_session(session_id: str):
         {
             "success": True,
             "session_id": new_session_id,
-            "message": "✅ Session reset. Upload a new CSV to start over.",
+            "message": "Session reset. Upload a new CSV to start over.",
         }
     )
 
@@ -433,7 +433,7 @@ async def dismiss_problem(session_id: str, problem_id: str, payload: Dict = Body
         "timestamp": datetime.now().isoformat(),
     }
 
-    state["last_response"] = f"✅ {problem_id} dismissed as false alarm."
+    state["last_response"] = f"{problem_id} dismissed as false alarm."
     state["last_action"] = "dismiss_problem"
     state["timestamp_last_update"] = datetime.now()
     STUDENT_SESSIONS[session_id] = state
@@ -475,7 +475,7 @@ async def provide_context(session_id: str, problem_id: str, payload: Dict = Body
     return _sanitize_for_json(
         {
             "success": True,
-            "message": "✅ Context saved. Analysis updated.",
+            "message": "Context saved. Analysis updated.",
             "active_problems": _active_problem_ids(state),
             "outlier_warnings": state.get("csv_stats", {}).get("outlier_warnings", {}),
         }
@@ -511,7 +511,7 @@ async def set_threshold(session_id: str, threshold_name: str, payload: Dict = Bo
     return _sanitize_for_json(
         {
             "success": True,
-            "message": f"✅ Threshold updated: {threshold_name} = {value}",
+            "message": f"Threshold updated: {threshold_name} = {value}",
             "active_problems": _active_problem_ids(state),
             "thresholds": state.get("thresholds", {}),
             "outlier_warnings": state.get("csv_stats", {}).get("outlier_warnings", {}),

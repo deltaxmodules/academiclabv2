@@ -122,7 +122,7 @@ def _build_chk001_report(stats: Dict) -> Dict:
 
 def show_problems_node(state: StudentState) -> StudentState:
     """Show detected problems grouped by severity."""
-    output = "🎓 Hi! I analyzed your dataset and found issues:\n\n"
+    output = "Hi! I analyzed your dataset and found issues:\n\n"
     dismissed = set(state.get("problems_dismissed", {}).keys())
 
     by_severity: Dict[str, List[Dict]] = {}
@@ -133,15 +133,14 @@ def show_problems_node(state: StudentState) -> StudentState:
     for severity in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
         if severity not in by_severity:
             continue
-        emoji = {"CRITICAL": "🔴", "HIGH": "🟡", "MEDIUM": "🟢", "LOW": "⚪"}
-        output += f"{emoji[severity]} {severity}:\n"
+        output += f"{severity}:\n"
         for p in by_severity[severity]:
             suffix = " (dismissed)" if p.get("problem_id") in dismissed else ""
             output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}{suffix}\n"
         output += "\n"
 
-    output += "❓ Which issue would you like to explore first?\n"
-    output += "💡 Tip: start with CRITICAL issues."
+    output += "Which issue would you like to explore first?\n"
+    output += "Tip: start with CRITICAL issues."
 
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_response"] = output
@@ -155,7 +154,7 @@ def explain_problem_node(state: StudentState) -> StudentState:
     """Explain a specific problem using the LLM."""
     problem_id = state.get("current_problem")
     if not problem_id:
-        output = "❌ No problem selected. Please choose one."
+        output = "No problem selected. Please choose one."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "explain"
@@ -164,7 +163,7 @@ def explain_problem_node(state: StudentState) -> StudentState:
 
     problem_detail = lookup_problem(problem_id)
     if not problem_detail:
-        output = f"❌ Problem {problem_id} was not found in the framework."
+        output = f"Problem {problem_id} was not found in the framework."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "explain"
@@ -184,12 +183,12 @@ def explain_problem_node(state: StudentState) -> StudentState:
 You are a DATA SCIENCE INSTRUCTOR focused on education.
 
 RULES:
-❌ Never execute code or access the filesystem
-❌ Never claim you executed anything
-✅ Always explain in 3 parts: WHAT, WHY, HOW
-✅ Use simple analogies
-✅ Ask reflective questions
-✅ Cite the related checklist item
+- Never execute code or access the filesystem
+- Never claim you executed anything
+- Always explain in 3 parts: WHAT, WHY, HOW
+- Use simple analogies
+- Ask reflective questions
+- Cite the related checklist item
 
 OUTPUT FORMAT:
 1) WHAT is the issue
@@ -248,8 +247,8 @@ Explain in an educational way. The student will solve it on their own.
     solution = _select_solution(problem_id, solutions, state)
     if solution:
         examples_block += "\n\n---\n\n"
-        examples_block += f"🔧 CODE EXAMPLE for {problem_id}:\n\n"
-        examples_block += "⚠️ IMPORTANT: This is EDUCATIONAL code.\n"
+        examples_block += f"CODE EXAMPLE for {problem_id}:\n\n"
+        examples_block += "IMPORTANT: This is EDUCATIONAL code.\n"
         examples_block += "   Copy it to your environment and run it there.\n"
         examples_block += "   I will not execute anything here.\n\n"
         examples_block += f"**Method: {solution.get('method', 'Method 1')}**\n"
@@ -257,12 +256,12 @@ Explain in an educational way. The student will solve it on their own.
         examples_block += f"```python\n{solution.get('code', '# Code not available')}\n```\n\n"
         examples_block += "**Pros:**\n"
         for pro in solution.get("pros", []):
-            examples_block += f"  ✅ {pro}\n"
+            examples_block += f"  {pro}\n"
         examples_block += "\n**Cons:**\n"
         for con in solution.get("cons", []):
-            examples_block += f"  ❌ {con}\n"
+            examples_block += f"  {con}\n"
         examples_block += "\n---\n\n"
-        examples_block += "📝 Next step: run the code locally and come back with the result.\n"
+        examples_block += "Next step: run the code locally and come back with the result.\n"
 
     combined = explanation + examples_block
 
@@ -279,7 +278,7 @@ def expert_help_node(state: StudentState) -> StudentState:
     """Provide a technical, expert-level answer with Python code and opinion."""
     problem_id = state.get("current_problem")
     if not problem_id:
-        output = "❌ No problem selected. Please choose one."
+        output = "No problem selected. Please choose one."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "expert_help"
@@ -288,7 +287,7 @@ def expert_help_node(state: StudentState) -> StudentState:
 
     problem_detail = lookup_problem(problem_id)
     if not problem_detail:
-        output = f"❌ Problem {problem_id} was not found in the framework."
+        output = f"Problem {problem_id} was not found in the framework."
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "expert_help"
@@ -329,13 +328,13 @@ def expert_help_node(state: StudentState) -> StudentState:
 You are a senior DATA SCIENCE SPECIALIST and teacher.
 
 RULES:
-❌ Never execute code or claim execution
-✅ Be technical but clear
-✅ Provide a short Python code example (formatted)
-✅ In code blocks: only Python code and comments, no prose
-✅ Give an expert opinion on trade-offs and when to choose each option
-✅ Keep it concise and actionable
-✅ Respond in {target_lang}
+- Never execute code or claim execution
+- Be technical but clear
+- Provide a short Python code example (formatted)
+- In code blocks: only Python code and comments, no prose
+- Give an expert opinion on trade-offs and when to choose each option
+- Keep it concise and actionable
+- Respond in {target_lang}
 
 OUTPUT FORMAT:
 1) Technical diagnosis (2-4 sentences)
@@ -476,8 +475,8 @@ def show_examples_node(state: StudentState) -> StudentState:
     problem_id = state.get("current_problem")
     problem_detail = lookup_problem(problem_id) if problem_id else None
 
-    output = f"🔧 CODE EXAMPLE for {problem_id}:\n\n"
-    output += "⚠️ IMPORTANT: This is EDUCATIONAL code.\n"
+    output = f"CODE EXAMPLE for {problem_id}:\n\n"
+    output += "IMPORTANT: This is EDUCATIONAL code.\n"
     output += "   Copy it to your environment and run it there.\n"
     output += "   I will not execute anything here.\n\n"
     output += "---\n\n"
@@ -493,13 +492,13 @@ def show_examples_node(state: StudentState) -> StudentState:
             output += f"```python\n{solution.get('code', '# Code not available')}\n```\n\n"
             output += "**Pros:**\n"
             for pro in solution.get("pros", []):
-                output += f"  ✅ {pro}\n"
+                output += f"  {pro}\n"
             output += "\n**Cons:**\n"
             for con in solution.get("cons", []):
-                output += f"  ❌ {con}\n"
+                output += f"  {con}\n"
 
     output += "\n---\n\n"
-    output += "📝 Next step: run the code locally and come back with the result.\n"
+    output += "Next step: run the code locally and come back with the result.\n"
 
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_response"] = output
@@ -521,7 +520,7 @@ def ask_reflection_node(state: StudentState) -> StudentState:
     }
     question = questions.get(problem_id, f"What did you learn about {problem_id}?")
 
-    output = f"\n🤔 Reflection question:\n\n**{question}**\n\nTell me your answer."
+    output = f"\nReflection question:\n\n**{question}**\n\nTell me your answer."
     state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
     state["last_action"] = "ask_reflection"
     state["timestamp_last_update"] = _now()
@@ -570,13 +569,13 @@ Respond ONLY in JSON:
         if problem_id and problem_id not in state["problems_solved"]:
             state["problems_solved"].append(problem_id)
         feedback = (
-            f"✅ Great! You understood {problem_id}!\n\n"
-            "📤 Apply the fixes locally and upload the updated CSV "
+            f"Great! You understood {problem_id}!\n\n"
+            "Apply the fixes locally and upload the updated CSV "
             "so we can revalidate the next issue.\n\n"
         )
         state["reupload_required"] = True
     else:
-        feedback = "🤔 It seems there are still doubts. Want me to explain again?\n\n"
+        feedback = "It seems there are still doubts. Want me to explain again?\n\n"
 
     state["conversation"].append(
         {"role": "assistant", "content": feedback + result.get("feedback", ""), "timestamp": _now()}
@@ -631,7 +630,7 @@ def mark_problem_solved_node(state: StudentState) -> StudentState:
         state["checklist_status"][chk_id] = True
 
     followup = (
-        "\n\n📤 After applying fixes locally, upload the updated dataset "
+        "\n\nAfter applying fixes locally, upload the updated dataset "
         "so we can revalidate and pick the next issue."
     )
     state["last_response"] = (state.get("last_response", "") + followup).strip()
