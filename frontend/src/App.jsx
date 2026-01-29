@@ -34,11 +34,102 @@ function App() {
   });
 
   const statusLabel = useMemo(() => {
-    if (status === "connected") return "✅ Connected";
-    if (status === "connecting") return "⏳ Connecting";
-    if (status === "error") return "⚠️ Error";
-    return "🕒 Waiting";
+    if (status === "connected") return "Connected";
+    if (status === "connecting") return "Connecting";
+    if (status === "error") return "Error";
+    return "Waiting";
   }, [status]);
+
+  const StatusIcon = () => {
+    if (status === "connected") return <Icon name="check" />;
+    if (status === "connecting") return <Icon name="spinner" />;
+    if (status === "error") return <Icon name="alert" />;
+    return <Icon name="clock" />;
+  };
+
+  const Icon = ({ name }) => {
+    const icons = {
+      check: (
+        <path d="M5 13l4 4L19 7" />
+      ),
+      alert: (
+        <>
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+          <path d="M10.29 3.86l-7.4 12.8A1 1 0 003.76 18h16.48a1 1 0 00.87-1.5l-7.4-12.8a1 1 0 00-1.73 0z" />
+        </>
+      ),
+      clock: (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      ),
+      spinner: (
+        <path d="M12 3a9 9 0 109 9" />
+      ),
+      user: (
+        <>
+          <path d="M20 21a8 8 0 10-16 0" />
+          <circle cx="12" cy="8" r="4" />
+        </>
+      ),
+      bot: (
+        <>
+          <rect x="4" y="6" width="16" height="12" rx="3" />
+          <path d="M8 6V4" />
+          <path d="M16 6V4" />
+          <circle cx="9" cy="12" r="1" />
+          <circle cx="15" cy="12" r="1" />
+        </>
+      ),
+      file: (
+        <>
+          <path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z" />
+          <path d="M14 3v6h6" />
+        </>
+      ),
+      edit: (
+        <>
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+        </>
+      ),
+      warn: (
+        <>
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+          <path d="M10.29 3.86l-7.4 12.8A1 1 0 003.76 18h16.48a1 1 0 00.87-1.5l-7.4-12.8a1 1 0 00-1.73 0z" />
+        </>
+      ),
+      help: (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.09 9a3 3 0 115.82 1c0 2-3 2-3 4" />
+          <path d="M12 17h.01" />
+        </>
+      ),
+      reset: (
+        <>
+          <path d="M3 12a9 9 0 0115-6" />
+          <path d="M18 3v6h-6" />
+        </>
+      ),
+      copy: (
+        <>
+          <rect x="9" y="9" width="11" height="11" rx="2" />
+          <rect x="4" y="4" width="11" height="11" rx="2" />
+        </>
+      ),
+    };
+    return (
+      <span className="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          {icons[name]}
+        </svg>
+      </span>
+    );
+  };
 
   const outlierWarnings = useMemo(() => {
     const warningsByCol = csvInfo?.outlier_warnings || {};
@@ -64,6 +155,7 @@ function App() {
                 setTimeout(() => setCopyNotice(""), 2000);
               }}
             >
+              <Icon name="copy" />
               Copy
             </button>
             <pre className="code-block">{cleaned.trim()}</pre>
@@ -434,7 +526,10 @@ function App() {
             <div className="chat-header">
               <div>
                 <h3>2. Chat with the tutor</h3>
-                <span className="status-pill">{statusLabel}</span>
+                <span className="status-pill">
+                  <StatusIcon />
+                  {statusLabel}
+                </span>
               </div>
               {csvInfo && (
                 <div className="dataset-meta">
@@ -448,7 +543,10 @@ function App() {
               {messages.map((msg) => (
                 <div key={msg.id} className={`bubble ${msg.role}`}>
                   <div className="bubble-header">
-                    <span>{msg.role === "user" ? "👤 You" : "🤖 Tutor"}</span>
+                    <span>
+                      {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" />}
+                      {msg.role === "user" ? "You" : "Tutor"}
+                    </span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
                   </div>
                   {renderMessage(msg.content)}
@@ -456,8 +554,10 @@ function App() {
               ))}
               {loading && (
                 <div className="bubble assistant">
-                  <div className="bubble-header">🤖 Tutor</div>
-                  <pre>⏳ Thinking...</pre>
+                  <div className="bubble-header">
+                    <Icon name="bot" /> Tutor
+                  </div>
+                  <pre>Thinking...</pre>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -547,7 +647,7 @@ function App() {
                     </div>
                     {outlierWarnings.length > 0 && (
                       <div className="warning-box">
-                        <strong>⚠ Context warnings:</strong>
+                    <strong><Icon name="warn" /> Context warnings:</strong>
                         {outlierWarnings.map((warning, idx) => (
                           <p key={`${warning}-${idx}`}>{warning}</p>
                         ))}
@@ -564,9 +664,9 @@ function App() {
       {showReuploadModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowReuploadModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>📁 File to edit:</h3>
+            <h3><Icon name="file" /> File to edit:</h3>
             <p className="path">{`dataset_v${csvInfo?.csv_version || "?"}.csv`}</p>
-            <p>📝 Fix the issue in Jupyter and bring the updated file here.</p>
+            <p><Icon name="edit" /> Fix the issue in Jupyter and bring the updated file here.</p>
             <p className="path-hint">
               Save the updated file in the same folder you selected for the first upload.
             </p>
@@ -580,10 +680,10 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
             <div className="modal-actions">
               <label className="upload-button">
                 <input type="file" accept=".csv" onChange={(e) => { handleCsvUpload(e); setShowReuploadModal(false); }} />
-                ✅ I have the new file
+                I have the new file
               </label>
               <button className="ghost" onClick={() => setShowReuploadModal(false)}>
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </div>
@@ -593,7 +693,7 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
       {showDismissModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowDismissModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>✅ Mark outliers as false alarm</h3>
+            <h3><Icon name="check" /> Mark outliers as false alarm</h3>
             <p>Explain why these outliers are valid for your dataset.</p>
             <textarea
               className="reason-input"
@@ -608,10 +708,10 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 onClick={handleDismissOutliers}
                 disabled={loading || !dismissReason.trim()}
               >
-                ✅ Confirm
+                Confirm
               </button>
               <button className="ghost" onClick={() => setShowDismissModal(false)}>
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </div>
@@ -621,7 +721,7 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
       {showContextModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowContextModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>📋 Provide domain context</h3>
+            <h3><Icon name="help" /> Provide domain context</h3>
             <p>Explain the expected range for this column.</p>
             <label className="field-label">Column</label>
             <select
@@ -684,10 +784,10 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 onClick={handleSaveContext}
                 disabled={loading || !contextData.explanation.trim()}
               >
-                ✅ Save context
+                Save context
               </button>
               <button className="ghost" onClick={() => setShowContextModal(false)}>
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </div>
@@ -697,7 +797,7 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
       {showTechHelpModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowTechHelpModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>🧠 Ask for technical help</h3>
+            <h3><Icon name="help" /> Ask for technical help</h3>
             <p>Describe your question so the tutor can answer like a data science expert.</p>
             <textarea
               className="reason-input"
@@ -722,10 +822,10 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
                 }}
                 disabled={loading || !techHelpText.trim()}
               >
-                ✅ Send question
+                Send question
               </button>
               <button className="ghost" onClick={() => setShowTechHelpModal(false)}>
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </div>
@@ -735,14 +835,15 @@ df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
       {showResetModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowResetModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>♻️ Start a new session</h3>
-            <p>This clears the current chat and starts fresh with a new upload.</p>
+            <h3><Icon name="reset" /> Start a new session</h3>
+            <p>This will permanently clear the current chat and session data.</p>
+            <p>You will need to upload a new CSV to continue.</p>
             <div className="modal-actions">
               <button className="upload-button" onClick={handleResetSession} disabled={loading}>
-                ✅ Reset session
+                Reset session
               </button>
               <button className="ghost" onClick={() => setShowResetModal(false)}>
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </div>
