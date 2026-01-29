@@ -593,20 +593,20 @@ function App() {
                 Re-evaluate CSV
               </button>
               <button
-                className="outline-button danger"
-                type="button"
-                onClick={() => setShowResetModal(true)}
-                disabled={loading}
-              >
-                Start new session
-              </button>
-              <button
                 className="outline-button"
                 type="button"
                 onClick={handleOpenNotes}
                 disabled={loading}
               >
                 Notes
+              </button>
+              <button
+                className="outline-button danger small"
+                type="button"
+                onClick={() => setShowResetModal(true)}
+                disabled={loading}
+              >
+                Start new session
               </button>
             </div>
 
