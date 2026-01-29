@@ -580,6 +580,7 @@ function App() {
             {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
             <div className="chat-input">
+              <div className="input-label">Activate the expert agent for technical questions.</div>
               <div className="chat-input-field">
                 <textarea
                   value={input}

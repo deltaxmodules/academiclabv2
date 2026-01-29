@@ -249,6 +249,13 @@
   width: 100%;
 }
 
+.input-label {
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
 .chat-input textarea {
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -269,7 +276,7 @@
   height: 24px;
   border-radius: 999px;
   border: none;
-  background: #d4d4d4;
+  background: #c2413d;
   cursor: pointer;
   padding: 0;
   transition: background 0.2s ease;
@@ -289,7 +296,7 @@
 }
 
 .expert-switch.active {
-  background: #ff4fa3;
+  background: #2f855a;
 }
 
 .expert-switch.active::after {
