@@ -47,12 +47,14 @@ Depois do diagnóstico, o backend envia a primeira resposta ao aluno:
 A partir daí, o aluno conversa com o tutor (chat). O backend interpreta cada mensagem e decide a resposta seguinte.
 
 #### **3.1 Ajuda técnica (especialista) quando o aluno está bloqueado**
-Se o aluno escrever algo como “não estou a conseguir”, “não entendo”, “podes mostrar código?”, o backend ativa um modo **especialista**.\n
-Nesse modo, o tutor:\n
-- Dá uma explicação mais técnica e direta\n
-- Mostra um pequeno exemplo em Python\n
-- Dá uma opinião profissional (trade‑offs e quando escolher cada opção)\n
-- Mantém o foco no problema atual (ex: P03, P01, etc.)\n
+Se o aluno pedir ajuda técnica, o backend ativa um modo **especialista**.
+
+Nesse modo, o tutor:
+- Dá uma explicação mais técnica e direta
+- Mostra um pequeno exemplo em Python
+- Dá uma opinião profissional (trade‑offs e quando escolher cada opção)
+- Mantém o foco no problema atual (ex: P03, P01, etc.)
+
 Depois disso, o fluxo volta ao normal.
 
 #### **4. Progresso da sessão**
@@ -129,6 +131,12 @@ Pense no frontend como a sala de aula, onde o aluno interage com o tutor.
 - O tutor responde com explicações
 - As respostas aparecem como “bolhas” no chat
 
+**Ajuda técnica com modal:**
+- O aluno pode clicar em “Ask for technical help”
+- Abre um modal para escrever a dúvida
+- A resposta vem no mesmo idioma da pergunta
+- Trechos de código aparecem formatados com botão “Copy”
+
 #### **3. Reupload (nova versão do CSV)**
 - O aluno clica em “Re-evaluate CSV”
 - Abre um modal com instruções simples
@@ -146,6 +154,9 @@ Se o problema P03 existir, o frontend mostra um painel especial:
 - **Slider de sensibilidade**
   → ajusta a detecção de outliers
 
+Este painel vem **fechado** por padrão e pode ser aberto/fechado pelo aluno.
+Ao abrir, existe um texto curto a explicar para que serve cada opção.
+
 E se houver warnings (ex: intervalo estranho), aparecem logo abaixo:
 
 “⚠ Context warnings: …”
@@ -160,6 +171,11 @@ O frontend:
 - Atualiza o chat
 - Mostra o próximo problema
 - Mostra avisos, se necessário
+
+#### **6. Recomeçar do zero**
+- Existe um botão “Start new session”
+- O chat e o estado atual são limpos
+- O aluno começa novamente com um novo upload
 
 ---
 
