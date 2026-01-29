@@ -364,6 +364,7 @@ RULES:
 - Focus on the student's specific question and their results
 - Do NOT restate generic method steps already applied
 - If the student shows results, interpret them and recommend next actions
+- If the student asks how to compute a method (e.g., IQR), explain it briefly
 - Ask a brief clarifying question if key context is missing
 - Provide a short Python code example ONLY if it helps the next step
 - In code blocks: only Python code and comments, no prose
@@ -394,13 +395,6 @@ OUTPUT FORMAT:
             p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
 
     extra_focus = ""
-    if "outliers" in msg_lower or "iqr" in msg_lower:
-        extra_focus = (
-            "The student is asking what to do with outlier results. "
-            "Do not explain IQR again. Give actions: validate domain plausibility, "
-            "treat sentinel zeros as missing if applicable, choose keep/cap/remove, "
-            "and re-run checks. If they provided a table, interpret it."
-        )
 
     recent_tutor = [
         m.get("content", "")
