@@ -122,7 +122,6 @@ def _build_chk001_report(stats: Dict) -> Dict:
 def show_problems_node(state: StudentState) -> StudentState:
     """Show detected problems grouped by severity."""
     output = "🎓 Hi! I analyzed your dataset and found issues:\n\n"
-    accepted = set(state.get("problems_accepted", {}).keys())
 
     by_severity: Dict[str, List[Dict]] = {}
     for problem in state["problems_detected"]:
@@ -135,8 +134,7 @@ def show_problems_node(state: StudentState) -> StudentState:
         emoji = {"CRITICAL": "🔴", "HIGH": "🟡", "MEDIUM": "🟢", "LOW": "⚪"}
         output += f"{emoji[severity]} {severity}:\n"
         for p in by_severity[severity]:
-            suffix = " (accepted)" if p.get("problem_id") in accepted else ""
-            output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}{suffix}\n"
+            output += f"  • {p['problem_id']}: {p.get('message', p.get('problem_name', ''))}\n"
         output += "\n"
 
     output += "❓ Which issue would you like to explore first?\n"
@@ -533,12 +531,10 @@ def route_next_step(state: StudentState) -> str:
             return "explain_again"
         return "mark_solved"
 
-    accepted = set(state.get("problems_accepted", {}).keys())
     problems_remaining = [
         p
         for p in state["problems_detected"]
         if p["problem_id"] not in state["problems_solved"]
-        and p["problem_id"] not in accepted
     ]
 
     if not problems_remaining:

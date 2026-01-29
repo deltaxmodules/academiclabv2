@@ -20,7 +20,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from graph import AGENT_GRAPH
 from state import StudentState, create_initial_state
 from nodes import translate_message
-from data_access import lookup_problem
 
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
@@ -171,41 +170,10 @@ def _select_problem_id(message: str, state: StudentState) -> str | None:
 def _next_unsolved_problem(state: StudentState) -> str | None:
     """Get the next unsolved problem id."""
     solved = set(state["problems_solved"])
-    accepted = set(state.get("problems_accepted", {}).keys())
     for problem in state["problems_detected"]:
-        if problem["problem_id"] not in solved and problem["problem_id"] not in accepted:
+        if problem["problem_id"] not in solved:
             return problem["problem_id"]
     return None
-
-
-def _accept_outliers_intent(message: str, state: StudentState) -> str | None:
-    """Detect intent to accept outliers as valid and return the problem id."""
-    msg = message.lower()
-    if not any(term in msg for term in ["outlier", "outliers", "p03"]):
-        return None
-    if not any(term in msg for term in ["accept", "keep", "valid", "false alarm", "ignore", "ok to keep"]):
-        return None
-
-    selected = _select_problem_id(message, state)
-    if selected:
-        return selected
-    if state.get("current_problem") == "P03":
-        return "P03"
-    available = {p["problem_id"] for p in state["problems_detected"]}
-    return "P03" if "P03" in available else None
-
-
-def _record_problem_acceptance(state: StudentState, problem_id: str, reason: str) -> None:
-    """Record that a problem was accepted as valid (false alarm)."""
-    state.setdefault("problems_accepted", {})
-    state["problems_accepted"][problem_id] = reason.strip()[:500]
-    if problem_id not in state["problems_solved"]:
-        state["problems_solved"].append(problem_id)
-
-    detail = lookup_problem(problem_id)
-    chk_id = detail.get("checklist_ref") if detail else None
-    if chk_id:
-        state["checklist_status"][chk_id] = True
 
 
 def _compare_problem_sets(old: StudentState, new: StudentState) -> Dict[str, set]:
@@ -290,7 +258,6 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     old_state["problems_detected"] = []
     old_state["current_problem"] = None
     old_state["problems_solved"] = []
-    old_state["problems_accepted"] = {}
     old_state["checklist_status"] = {}
     old_state["attempts_current_problem"] = 0
     old_state["last_validation_result"] = None
@@ -369,51 +336,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             )
             state["messages_count"] += 1
 
-            accept_problem = _accept_outliers_intent(message, state)
-            if accept_problem:
-                _record_problem_acceptance(state, accept_problem, message)
-                next_problem = _next_unsolved_problem(state)
-                response = f"✅ {accept_problem} marked as accepted (false alarm)."
-                if next_problem:
-                    response += f"\n\nNext issue: {next_problem}. Ask me to explain it when you're ready."
-                state["last_response"] = response
-                state["last_action"] = "accept_problem"
-                state["reupload_required"] = False
-                state["timestamp_last_update"] = datetime.now()
-                state["conversation"].append(
-                    {"role": "assistant", "content": response, "timestamp": datetime.now()}
-                )
-                STUDENT_SESSIONS[session_id] = state
-
-                target_lang = None
-                last_user = next(
-                    (m for m in reversed(state["conversation"]) if m.get("role") == "user"),
-                    None,
-                )
-                if last_user and last_user.get("content"):
-                    try:
-                        lang = detect(last_user["content"])
-                        if lang in {"pt", "fr", "es", "it", "de"}:
-                            target_lang = lang
-                    except Exception:
-                        target_lang = None
-
-                content = state["last_response"]
-                if target_lang:
-                    content = translate_message(content, target_lang)
-
-                await websocket.send_json(
-                    {
-                        "type": "response",
-                        "content": content,
-                        "action": state["last_action"],
-                        "problems_solved": state["problems_solved"],
-                        "understanding_level": state["understanding_level"],
-                        "reupload_required": state.get("reupload_required", False),
-                    }
-                )
-                continue
-
             msg_lower = message.lower()
             if "list" in msg_lower or "issues" in msg_lower:
                 state["last_action"] = "analyze"
@@ -478,7 +400,6 @@ async def get_session(session_id: str):
         "filename": state["csv_filename"],
         "problems_detected": len(state["problems_detected"]),
         "problems_solved": state["problems_solved"],
-        "problems_accepted": state.get("problems_accepted", {}),
         "understanding_level": state["understanding_level"],
         "messages_count": state["messages_count"],
         "checklist_report": state.get("checklist_report", {}),
