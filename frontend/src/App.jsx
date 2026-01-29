@@ -730,13 +730,6 @@ function App() {
             <p className="path-hint">
               Save the updated file in the same folder you selected for the first upload.
             </p>
-            <pre className="code-block">{`import pandas as pd
-
-raw_df = pd.read_csv("dataset_v${csvInfo?.csv_version || "?"}.csv")
-df = raw_df.copy()
-# ... apply fixes on df ...
-df.to_csv("dataset_v${(csvInfo?.csv_version || 1) + 1}.csv", index=False)
-`}</pre>
             <div className="modal-actions">
               <label className="upload-button">
                 <input type="file" accept=".csv" onChange={(e) => { handleCsvUpload(e); setShowReuploadModal(false); }} />
