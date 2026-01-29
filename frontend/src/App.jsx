@@ -580,21 +580,24 @@ function App() {
             {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
             <div className="chat-input">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question or choose a P##..."
-                disabled={loading || status !== "connected"}
-                rows={2}
-              />
-              <button
-                className={expertMode ? "toggle-button active" : "toggle-button"}
-                type="button"
-                onClick={() => setExpertMode((prev) => !prev)}
-                disabled={loading || status !== "connected"}
-              >
-                Expert
-              </button>
+              <div className="chat-input-field">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask a question or choose a P##..."
+                  disabled={loading || status !== "connected"}
+                  rows={2}
+                />
+                <button
+                  className={expertMode ? "expert-toggle active" : "expert-toggle"}
+                  type="button"
+                  onClick={() => setExpertMode((prev) => !prev)}
+                  disabled={loading || status !== "connected"}
+                  aria-pressed={expertMode}
+                >
+                  Expert
+                </button>
+              </div>
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
                 Send
               </button>

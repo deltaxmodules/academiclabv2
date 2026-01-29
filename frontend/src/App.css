@@ -244,6 +244,11 @@
   gap: 12px;
 }
 
+.chat-input-field {
+  position: relative;
+  width: 100%;
+}
+
 .chat-input textarea {
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -251,19 +256,26 @@
   background: #fffdfa;
   resize: vertical;
   min-height: 44px;
+  width: 100%;
+  padding-right: 92px;
 }
 
-.toggle-button {
+.expert-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   border-radius: 999px;
   border: 1px solid rgba(34, 105, 171, 0.4);
   background: #f1f6ff;
   color: #2269ab;
-  padding: 10px 16px;
+  padding: 6px 12px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 0.8rem;
 }
 
-.toggle-button.active {
+.expert-toggle.active {
   background: #2269ab;
   color: #ffffff;
 }
