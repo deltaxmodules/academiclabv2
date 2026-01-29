@@ -574,6 +574,10 @@ function App() {
 
             {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
+            <p className="input-hint">
+              Tip: use <strong>expert:</strong> at the start of your message to get a technical answer.
+            </p>
+
             <div className="chat-input">
               <textarea
                 value={input}

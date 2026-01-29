@@ -400,6 +400,12 @@
   font-size: 0.85rem;
 }
 
+.input-hint {
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .notes-toolbar {
   display: flex;
   gap: 8px;
