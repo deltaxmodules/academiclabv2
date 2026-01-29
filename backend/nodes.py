@@ -179,13 +179,16 @@ def explain_problem_node(state: StudentState) -> StudentState:
             f"{checklist_item.get('description')}"
         )
 
-    system_prompt = """
+    style = state.get("response_style", "fast")
+    tutor_word_limit = "90" if style == "fast" else "160"
+
+    system_prompt = f"""
 You are a DATA SCIENCE INSTRUCTOR focused on education.
 
 RULES:
 - Never execute code or access the filesystem
 - Never claim you executed anything
-- Keep it concise and objective (max ~120 words)
+- Keep it concise and objective (max ~{tutor_word_limit} words)
 - Focus on the student's immediate need
 - Cite the related checklist item
 
@@ -322,6 +325,9 @@ def expert_help_node(state: StudentState) -> StudentState:
         except Exception:
             target_lang = "English"
 
+    style = state.get("response_style", "fast")
+    expert_word_limit = "110" if style == "fast" else "180"
+
     system_prompt = f"""
 You are a senior DATA SCIENCE SPECIALIST and teacher.
 
@@ -331,7 +337,7 @@ RULES:
 - Provide a short Python code example (formatted)
 - In code blocks: only Python code and comments, no prose
 - Give an expert opinion on trade-offs and when to choose each option
-- Keep it concise and actionable (max ~140 words)
+- Keep it concise and actionable (max ~{expert_word_limit} words)
 - Respond in {target_lang}
 
 OUTPUT FORMAT:

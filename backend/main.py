@@ -411,6 +411,26 @@ async def reset_session(session_id: str):
     )
 
 
+@app.post("/session/{session_id}/response-style")
+async def set_response_style(session_id: str, payload: Dict = Body(...)):
+    """Set response style: fast or detailed."""
+    if session_id not in STUDENT_SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    style = (payload.get("style") or "").lower()
+    if style not in {"fast", "detailed"}:
+        raise HTTPException(status_code=400, detail="style must be 'fast' or 'detailed'")
+
+    state = STUDENT_SESSIONS[session_id]
+    state["response_style"] = style
+    state["timestamp_last_update"] = datetime.now()
+    STUDENT_SESSIONS[session_id] = state
+
+    return _sanitize_for_json(
+        {"success": True, "response_style": style}
+    )
+
+
 @app.post("/session/{session_id}/dismiss-problem/{problem_id}")
 async def dismiss_problem(session_id: str, problem_id: str, payload: Dict = Body(...)):
     """Dismiss a problem as a false alarm with required explanation."""

@@ -25,6 +25,7 @@ function App() {
   const [showTechHelpModal, setShowTechHelpModal] = useState(false);
   const [techHelpText, setTechHelpText] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
+  const [responseStyle, setResponseStyle] = useState("fast");
   const [contextData, setContextData] = useState({
     column: "",
     dataset_type: "",
@@ -342,6 +343,20 @@ function App() {
     setShowReuploadModal(true);
   };
 
+  const handleResponseStyle = async (style) => {
+    setResponseStyle(style);
+    if (!sessionId) return;
+    try {
+      await fetch(`${API_URL}/session/${sessionId}/response-style`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ style }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleResetSession = async () => {
     if (!sessionId) return;
     setLoading(true);
@@ -590,6 +605,22 @@ function App() {
                   <StatusIcon />
                   {statusLabel}
                 </span>
+              </div>
+              <div className="response-style">
+                <button
+                  className={responseStyle === "fast" ? "pill active" : "pill"}
+                  type="button"
+                  onClick={() => handleResponseStyle("fast")}
+                >
+                  Fast
+                </button>
+                <button
+                  className={responseStyle === "detailed" ? "pill active" : "pill"}
+                  type="button"
+                  onClick={() => handleResponseStyle("detailed")}
+                >
+                  Detailed
+                </button>
               </div>
               {csvInfo && (
                 <div className="dataset-meta">

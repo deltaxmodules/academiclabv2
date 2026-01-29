@@ -125,6 +125,30 @@
   color: var(--muted);
 }
 
+.response-style {
+  display: inline-flex;
+  gap: 6px;
+  background: #f5f2ec;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.pill {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pill.active {
+  background: #ffffff;
+  color: var(--accent-dark);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
 .path-hint {
   font-size: 0.85rem;
   color: var(--muted);

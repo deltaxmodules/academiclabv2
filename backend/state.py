@@ -59,6 +59,7 @@ class StudentState(TypedDict):
     last_action: str
     last_action_forced: Optional[str]
     messages_count: int
+    response_style: Literal["fast", "detailed"]
 
     # Guardrails
     guardrail_failed: bool
@@ -109,6 +110,7 @@ def create_initial_state(
         last_action="init",
         last_action_forced=None,
         messages_count=0,
+        response_style="fast",
         guardrail_failed=False,
         guardrail_reason=None,
         guardrail_history=[],
