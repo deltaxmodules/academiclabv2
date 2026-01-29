@@ -14,7 +14,7 @@ import numpy as np
 from langdetect import detect
 from dotenv import load_dotenv
 from pathlib import Path
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
+from fastapi import Body, FastAPI, File, HTTPException, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from graph import AGENT_GRAPH
@@ -208,6 +208,18 @@ def _record_problem_acceptance(state: StudentState, problem_id: str, reason: str
         state["checklist_status"][chk_id] = True
 
 
+def _can_accept_outliers(state: StudentState) -> bool:
+    """Return True if P03 exists and is not solved/accepted."""
+    detected = {p["problem_id"] for p in state.get("problems_detected", [])}
+    if "P03" not in detected:
+        return False
+    if "P03" in state.get("problems_solved", []):
+        return False
+    if "P03" in state.get("problems_accepted", {}):
+        return False
+    return True
+
+
 def _compare_problem_sets(old: StudentState, new: StudentState) -> Dict[str, set]:
     before = {p["problem_id"] for p in old.get("problems_detected", [])}
     after = {p["problem_id"] for p in new.get("problems_detected", [])}
@@ -348,6 +360,51 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     return _sanitize_for_json(response)
 
 
+@app.post("/accept/{session_id}")
+async def accept_problem(
+    session_id: str, payload: Dict = Body(...)
+):
+    """Accept a detected problem as valid (false alarm)."""
+    if session_id not in STUDENT_SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    problem_id = (payload.get("problem_id") or "").upper()
+    reason = (payload.get("reason") or "").strip()
+
+    if not problem_id:
+        raise HTTPException(status_code=400, detail="problem_id required")
+    if not reason:
+        raise HTTPException(status_code=400, detail="reason required")
+
+    state = STUDENT_SESSIONS[session_id]
+    detected = {p["problem_id"] for p in state.get("problems_detected", [])}
+    if problem_id not in detected:
+        raise HTTPException(status_code=400, detail="problem_id not in detected issues")
+
+    _record_problem_acceptance(state, problem_id, reason)
+    next_problem = _next_unsolved_problem(state)
+
+    response_msg = f"✅ {problem_id} marked as accepted (false alarm)."
+    if next_problem:
+        response_msg += f"\n\nNext issue: {next_problem}. Ask me to explain it when you're ready."
+
+    state["last_response"] = response_msg
+    state["last_action"] = "accept_problem"
+    state["timestamp_last_update"] = datetime.now()
+    STUDENT_SESSIONS[session_id] = state
+
+    return _sanitize_for_json(
+        {
+            "success": True,
+            "session_id": session_id,
+            "problem_id": problem_id,
+            "message": response_msg,
+            "problems_solved": state["problems_solved"],
+            "problems_accepted": state.get("problems_accepted", {}),
+        }
+    )
+
+
 @app.websocket("/chat/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
     """WebSocket chat endpoint."""
@@ -410,6 +467,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                         "problems_solved": state["problems_solved"],
                         "understanding_level": state["understanding_level"],
                         "reupload_required": state.get("reupload_required", False),
+                        "can_accept_outliers": _can_accept_outliers(state),
                     }
                 )
                 continue
@@ -457,6 +515,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                     "problems_solved": state["problems_solved"],
                     "understanding_level": state["understanding_level"],
                     "reupload_required": state.get("reupload_required", False),
+                    "can_accept_outliers": _can_accept_outliers(state),
                 }
             )
 
