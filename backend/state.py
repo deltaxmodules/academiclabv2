@@ -41,6 +41,7 @@ class StudentState(TypedDict):
 
     # Progress
     problems_solved: List[str]
+    problems_accepted: Dict[str, str]
     checklist_status: Dict[str, bool]
     checklist_report: Dict[str, Dict]
 
@@ -86,6 +87,7 @@ def create_initial_state(
         problems_detected=[],
         current_problem=None,
         problems_solved=[],
+        problems_accepted={},
         checklist_status={},
         checklist_report={},
         understanding_level="beginner",
