@@ -324,22 +324,22 @@ def expert_help_node(state: StudentState) -> StudentState:
     msg_lower = student_message.lower()
 
     # Gate: only respond as expert to data science questions.
-    ds_keywords = [
-        "outlier", "iqr", "z-score", "zscore", "winsor", "cap", "clip",
-        "missing", "impute", "imputation", "nan", "null", "duplicate",
-        "dataframe", "dataset", "pandas", "numpy", "feature", "encoding",
-        "scaling", "normalize", "standardize", "regression", "classification",
-        "model", "training", "validation", "variance", "bias", "drift",
-        "correlation", "vif", "leakage",
-    ]
-    non_ds_triggers = [
-        "que dia", "hoje", "hora", "data", "date", "time", "weather",
-        "noticias", "news",
-    ]
-    is_keyword_ds = any(k in msg_lower for k in ds_keywords)
-    is_non_ds = any(t in msg_lower for t in non_ds_triggers)
-
-    is_ds = is_keyword_ds and not is_non_ds
+    domain_prompt = (
+        "Answer ONLY 'YES' or 'NO'. "
+        "Is the user's message a data science / data analysis / ML / statistics question "
+        "that expects technical guidance? "
+        "If the user asks about time/date/news/weather or general chit-chat, answer NO."
+    )
+    try:
+        domain_resp = _get_llm().invoke(
+            [
+                {"role": "system", "content": domain_prompt},
+                {"role": "user", "content": student_message},
+            ]
+        )
+        is_ds = domain_resp.content.strip().lower().startswith("y")
+    except Exception:
+        is_ds = True
     if not is_ds:
         output = {
             "Portuguese": "Posso ajudar apenas com dúvidas técnicas de data science relacionadas com o exercício.",
