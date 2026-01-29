@@ -411,6 +411,23 @@ function App() {
               >
                 Re-evaluate CSV
               </button>
+              <button
+                className="outline-button"
+                type="button"
+                onClick={() => {
+                  if (!wsRef.current) return;
+                  const msg = "I need technical help with this problem.";
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: `${Date.now()}-expert`, role: "user", content: msg },
+                  ]);
+                  wsRef.current.send(JSON.stringify({ message: msg }));
+                  setLoading(true);
+                }}
+                disabled={loading || status !== "connected"}
+              >
+                Ask for technical help
+              </button>
             </div>
 
             {activeProblems.includes("P03") && (
