@@ -270,11 +270,7 @@ async def upload_csv(file: UploadFile = File(...)):
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Invalid CSV: {exc}") from exc
 
-    stats = _compute_stats(
-        df,
-        context_by_column=old_state.get("context_by_column", {}),
-        thresholds=old_state.get("thresholds", {}),
-    )
+    stats = _compute_stats(df)
     session_id = f"session_{uuid.uuid4().hex}"
 
     state = create_initial_state(
