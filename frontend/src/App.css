@@ -16,12 +16,26 @@
 
 .brand {
   display: grid;
-  gap: 6px;
+  gap: 10px;
+}
+
+.brand-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .brand-mark {
-  width: 36px;
+  width: 44px;
   height: auto;
+}
+
+.brand-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f5132;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .brand h1 {
@@ -36,15 +50,7 @@
 }
 
 .badge {
-  display: inline-flex;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  font-size: 0.75rem;
-  text-transform: uppercase;
+  display: none;
 }
 
 .hero-card {

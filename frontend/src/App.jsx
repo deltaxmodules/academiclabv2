@@ -653,20 +653,20 @@ function App() {
     <div className="app">
       <div className="hero">
         <div className="brand">
-          <span className="badge">AcademicLab Edu</span>
-          <svg
-            className="brand-mark"
-            viewBox="0 0 32 52"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="tube-glass" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stopColor="#d1fae5" />
-                <stop offset="100%" stopColor="#a7f3d0" />
-              </linearGradient>
-            </defs>
-            <path d="M6 0h20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2v32c0 10.493-5.372 18-12 18S6 50.493 6 40V8H4a2 2 0 0 1-2-2V2A2 2 0 0 1 4 0Z" fill="url(#tube-glass)" stroke="#064e3b" strokeWidth="2.5" strokeLinejoin="round"></path>
-          </svg>
+          <div className="brand-row">
+            <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+              <defs>
+                <linearGradient id="flask-glass" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#d1fae5" />
+                  <stop offset="100%" stopColor="#a7f3d0" />
+                </linearGradient>
+              </defs>
+              <path d="M26 6h12v10l10 18c5 8 0 18-9 18H25c-9 0-14-10-9-18l10-18V6z" fill="url(#flask-glass)" stroke="#064e3b" strokeWidth="2.5" strokeLinejoin="round"></path>
+              <path d="M22 24h20" stroke="#064e3b" strokeWidth="2.5" strokeLinecap="round"></path>
+              <path d="M20 38c6-4 18-4 24 0" stroke="#064e3b" strokeWidth="2.5" strokeLinecap="round"></path>
+            </svg>
+            <span className="brand-title">AcademicLab Edu</span>
+          </div>
           <h1>Data Preparation Tutor</h1>
           <p>
             An educational LangGraph tutor to guide students through data
