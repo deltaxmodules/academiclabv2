@@ -180,6 +180,22 @@
   height: 100%;
 }
 
+.icon.pulse svg {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
 .action-tag {
   background: #f0ebe3;
   padding: 2px 8px;
@@ -329,6 +345,23 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.text-block {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.text-line {
+  margin: 0 0 6px;
+}
+
+.severity-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  margin: 10px 0 6px;
 }
 
 .copy-toast {

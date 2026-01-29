@@ -47,7 +47,7 @@ function App() {
     return <Icon name="clock" />;
   };
 
-  const Icon = ({ name }) => {
+  const Icon = ({ name, className = "" }) => {
     const icons = {
       check: (
         <path d="M5 13l4 4L19 7" />
@@ -123,7 +123,7 @@ function App() {
       ),
     };
     return (
-      <span className="icon">
+      <span className={`icon ${className}`.trim()}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           {icons[name]}
         </svg>
@@ -137,6 +137,54 @@ function App() {
       (warnings || []).map((warning) => `${col}: ${warning}`)
     );
   }, [csvInfo]);
+
+  const renderTextBlock = (text) => {
+    const lines = text.split("\n");
+    return (
+      <div className="text-block">
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (trimmed === "CRITICAL:") {
+            return (
+              <div key={`line-${idx}`} className="severity-line">
+                <Icon name="alert" />
+                <span>CRITICAL:</span>
+              </div>
+            );
+          }
+          if (trimmed === "HIGH:") {
+            return (
+              <div key={`line-${idx}`} className="severity-line">
+                <Icon name="warn" />
+                <span>HIGH:</span>
+              </div>
+            );
+          }
+          if (trimmed === "MEDIUM:") {
+            return (
+              <div key={`line-${idx}`} className="severity-line">
+                <Icon name="clock" />
+                <span>MEDIUM:</span>
+              </div>
+            );
+          }
+          if (trimmed === "LOW:") {
+            return (
+              <div key={`line-${idx}`} className="severity-line">
+                <Icon name="check" />
+                <span>LOW:</span>
+              </div>
+            );
+          }
+          return (
+            <p key={`line-${idx}`} className="text-line">
+              {line}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
 
   const renderMessage = (content) => {
     const parts = content.split("```");
@@ -162,7 +210,7 @@ function App() {
           </div>
         );
       }
-      return <pre key={`text-${idx}`}>{part}</pre>;
+      return <React.Fragment key={`text-${idx}`}>{renderTextBlock(part)}</React.Fragment>;
     });
   };
 
@@ -544,7 +592,7 @@ function App() {
                 <div key={msg.id} className={`bubble ${msg.role}`}>
                   <div className="bubble-header">
                     <span>
-                      {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" />}
+                      {msg.role === "user" ? <Icon name="user" /> : <Icon name="bot" className="pulse" />}
                       {msg.role === "user" ? "You" : "Tutor"}
                     </span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
