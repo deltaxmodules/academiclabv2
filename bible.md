@@ -46,16 +46,17 @@ Depois do diagnóstico, o backend envia a primeira resposta ao aluno:
 
 A partir daí, o aluno conversa com o tutor (chat). O backend interpreta cada mensagem e decide a resposta seguinte.
 
-#### **3.1 Ajuda técnica (especialista) quando o aluno está bloqueado**
-Se o aluno pedir ajuda técnica, o backend ativa um modo **especialista**.
+#### **3.1 Ajuda técnica automática (especialista)**
+Se o aluno estiver bloqueado ou pedir ajuda técnica, o sistema deteta isso
+automaticamente e envia a conversa para um modo **especialista**.
 
 Nesse modo, o tutor:
 - Dá uma explicação mais técnica e direta
 - Mostra um pequeno exemplo em Python
 - Dá uma opinião profissional (trade‑offs e quando escolher cada opção)
-- Mantém o foco no problema atual (ex: P03, P01, etc.)
+- Mantém o foco no problema atual (ex: P01, P02, etc.)
 
-Depois disso, o fluxo volta ao normal.
+Depois disso, o fluxo volta ao normal sem o aluno ter de clicar em botões.
 
 #### **4. Progresso da sessão**
 O backend guarda o “estado” da sessão:
@@ -111,9 +112,9 @@ Pense no frontend como a sala de aula, onde o aluno interage com o tutor.
 - O tutor responde com explicações
 - As respostas aparecem como “bolhas” no chat
 
-**Ajuda técnica com modal:**
-- O aluno pode clicar em “Ask for technical help”
-- Abre um modal para escrever a dúvida
+**Ajuda técnica automática:**
+- O aluno escreve a dúvida normalmente no chat
+- O sistema deteta a intenção de ajuda técnica
 - A resposta vem no mesmo idioma da pergunta
 - Trechos de código aparecem formatados com botão “Copy”
 

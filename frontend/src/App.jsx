@@ -16,8 +16,6 @@ function App() {
   const chatEndRef = useRef(null);
   const [showReuploadModal, setShowReuploadModal] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
-  const [showTechHelpModal, setShowTechHelpModal] = useState(false);
-  const [techHelpText, setTechHelpText] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notesText, setNotesText] = useState("");
@@ -595,17 +593,6 @@ function App() {
                 Re-evaluate CSV
               </button>
               <button
-                className="outline-button"
-                type="button"
-                onClick={() => {
-                  setTechHelpText("");
-                  setShowTechHelpModal(true);
-                }}
-                disabled={loading || status !== "connected"}
-              >
-                Ask for technical help
-              </button>
-              <button
                 className="outline-button danger"
                 type="button"
                 onClick={() => setShowResetModal(true)}
@@ -649,44 +636,6 @@ function App() {
         </div>
       )}
 
-
-      {showTechHelpModal && sessionId && (
-        <div className="modal-backdrop" onClick={() => setShowTechHelpModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3><Icon name="help" /> Ask for technical help</h3>
-            <p>Describe your question so the tutor can answer like a data science expert.</p>
-            <textarea
-              className="reason-input"
-              placeholder="Example: I tried to remove outliers with IQR but got too many rows removed..."
-              value={techHelpText}
-              onChange={(e) => setTechHelpText(e.target.value)}
-              rows={4}
-            />
-            <div className="modal-actions">
-              <button
-                className="upload-button"
-                onClick={() => {
-                  if (!wsRef.current || !techHelpText.trim()) return;
-                  const msg = techHelpText.trim();
-                  setMessages((prev) => [
-                    ...prev,
-                    { id: `${Date.now()}-expert`, role: "user", content: msg },
-                  ]);
-                  wsRef.current.send(JSON.stringify({ message: msg, action: "expert_help" }));
-                  setLoading(true);
-                  setShowTechHelpModal(false);
-                }}
-                disabled={loading || !techHelpText.trim()}
-              >
-                Send question
-              </button>
-              <button className="ghost" onClick={() => setShowTechHelpModal(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showResetModal && sessionId && (
         <div className="modal-backdrop" onClick={() => setShowResetModal(false)}>

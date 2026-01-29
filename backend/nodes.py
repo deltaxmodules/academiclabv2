@@ -41,6 +41,42 @@ _LANG_CODE_MAP = {
 }
 
 
+def _clean_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+def should_route_to_expert(text: str) -> bool:
+    """LLM-based intent detection for technical help requests."""
+    text = _clean_text(text)
+    if not text:
+        return False
+    if re.fullmatch(r"p\d{2}", text.lower()):
+        return False
+    if len(text) < 6:
+        return False
+
+    llm = _get_llm()
+    system_prompt = (
+        "You are an intent classifier for a data science tutoring chat. "
+        "Return ONLY 'YES' or 'NO'. "
+        "Answer YES if the user is asking for technical help, code-level guidance, "
+        "or says they are stuck/confused and need expert help. "
+        "Answer NO if the user is simply selecting a problem id, saying 'next', "
+        "or giving a short acknowledgement."
+    )
+    user_prompt = f"User message: {text}"
+    try:
+        response = llm.invoke(
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ]
+        )
+        return response.content.strip().lower().startswith("y")
+    except Exception:
+        return False
+
+
 def _now() -> datetime:
     return datetime.now()
 
