@@ -50,8 +50,6 @@ def _step_router(state: StudentState) -> str:
         for term in ["example", "examples", "code", "snippet"]
     )
     wants_expert = bool(state.get("expert_requested"))
-    if wants_expert:
-        state["expert_requested"] = False
 
     if last_action in {"init", "upload"}:
         return "analyze_and_show"
@@ -87,6 +85,12 @@ def _step_router(state: StudentState) -> str:
             return "congratulations"
         if decision in {"retry_explain", "explain_again", "explain_next"}:
             return "explain_problem"
+        return "await_user"
+
+    if last_action == "expert_help":
+        return "await_user"
+
+    if last_action == "validate_no_code":
         return "await_user"
 
     return "await_user"

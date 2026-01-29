@@ -352,6 +352,7 @@ def expert_help_node(state: StudentState) -> StudentState:
         state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
         state["last_response"] = output
         state["last_action"] = "expert_help"
+        state["expert_requested"] = False
         state["timestamp_last_update"] = _now()
         return state
 
@@ -437,6 +438,7 @@ Avoid repeating the method; focus on what to do next and why.
     state["conversation"].append({"role": "assistant", "content": response.content, "timestamp": _now()})
     state["last_response"] = response.content
     state["last_action"] = "expert_help"
+    state["expert_requested"] = False
     state["timestamp_last_update"] = _now()
     return state
 
