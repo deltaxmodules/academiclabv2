@@ -285,25 +285,10 @@ Answer briefly and directly. Avoid repeating prior explanations.
 def expert_help_node(state: StudentState) -> StudentState:
     """Provide a technical, expert-level answer with Python code and opinion."""
     problem_id = state.get("current_problem")
-    if not problem_id:
-        output = "No problem selected. Please choose one."
-        state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
-        state["last_response"] = output
-        state["last_action"] = "expert_help"
-        state["timestamp_last_update"] = _now()
-        return state
+    problem_detail = lookup_problem(problem_id) if problem_id else None
 
-    problem_detail = lookup_problem(problem_id)
-    if not problem_detail:
-        output = f"Problem {problem_id} was not found in the framework."
-        state["conversation"].append({"role": "assistant", "content": output, "timestamp": _now()})
-        state["last_response"] = output
-        state["last_action"] = "expert_help"
-        state["timestamp_last_update"] = _now()
-        return state
-
-    checklist_ref = problem_detail.get("checklist_ref", "CHK-001")
-    checklist_item = lookup_checklist_item(checklist_ref)
+    checklist_ref = problem_detail.get("checklist_ref", "CHK-001") if problem_detail else "CHK-001"
+    checklist_item = lookup_checklist_item(checklist_ref) if problem_detail else None
     checklist_text = ""
     if checklist_item:
         checklist_text = (
@@ -379,6 +364,7 @@ RULES:
 - Focus on the student's specific question and their results
 - Do NOT restate generic method steps already applied
 - If the student shows results, interpret them and recommend next actions
+- Ask a brief clarifying question if key context is missing
 - Provide a short Python code example ONLY if it helps the next step
 - In code blocks: only Python code and comments, no prose
 - Avoid the word 'python' as a standalone line
@@ -408,11 +394,12 @@ OUTPUT FORMAT:
             p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
 
     extra_focus = ""
-    if "outliers in" in msg_lower:
+    if "outliers" in msg_lower or "iqr" in msg_lower:
         extra_focus = (
-            "The student already ran outlier detection and shared rows. "
-            "Interpret likely causes (e.g., zeros as missing in biomedical data), "
-            "suggest cleaning steps, and what to do next with those rows."
+            "The student is asking what to do with outlier results. "
+            "Do not explain IQR again. Give actions: validate domain plausibility, "
+            "treat sentinel zeros as missing if applicable, choose keep/cap/remove, "
+            "and re-run checks. If they provided a table, interpret it."
         )
 
     recent_tutor = [
@@ -422,7 +409,7 @@ OUTPUT FORMAT:
     ][-3:]
 
     user_prompt = f"""
-Problem: {problem_id} - {problem_detail.get('name')}
+Problem: {problem_id or 'N/A'} - {problem_detail.get('name') if problem_detail else 'N/A'}
 Student message: {student_message}
 
 Tutor context (recent):
@@ -432,8 +419,7 @@ Conversation context:
 - Understanding level: {state['understanding_level']}
 - Attempts on this problem: {state['attempts_current_problem']}
 
-Checklist: {checklist_ref}
-Checklist detail: {checklist_text if checklist_text else 'N/A'}
+Checklist reference: {checklist_ref}
 {p01_context}
 {extra_focus}
 
