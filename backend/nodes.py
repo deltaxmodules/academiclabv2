@@ -372,6 +372,9 @@ RULES:
 - Provide a short Python code example (formatted)
 - In code blocks: only Python code and comments, no prose
 - Give an expert opinion on trade-offs and when to choose each option
+- Do NOT restate generic method steps the student already applied
+- If the student shows results, interpret them and recommend next actions
+- Avoid the word 'python' as a standalone line
 - Keep it concise and actionable (max ~{expert_word_limit} words)
 - Respond in {target_lang}
 
@@ -397,9 +400,18 @@ OUTPUT FORMAT:
             hint = _missing_action_hint(mpct, state.get("csv_stats", {}).get("rows", 0), mtype)
             p01_context = f"Missing type heuristic: {mtype}, missing %: {mpct:.1f}, recommended: {hint}"
 
+    student_message = state["conversation"][-1]["content"]
+    extra_focus = ""
+    if "outliers in" in student_message.lower():
+        extra_focus = (
+            "The student already ran outlier detection and shared rows. "
+            "Interpret likely causes (e.g., zeros as missing in biomedical data), "
+            "suggest cleaning steps, and what to do next with those rows."
+        )
+
     user_prompt = f"""
 Problem: {problem_id} - {problem_detail.get('name')}
-Student message: {state['conversation'][-1]['content']}
+Student message: {student_message}
 
 Context:
 - Understanding level: {state['understanding_level']}
@@ -412,6 +424,7 @@ Framework:
 Checklist: {checklist_ref}
 Checklist detail: {checklist_text if checklist_text else 'N/A'}
 {p01_context}
+{extra_focus}
 
 Respond as an expert with a short Python example and a clear opinion.
 """
