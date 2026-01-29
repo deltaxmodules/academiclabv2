@@ -575,12 +575,12 @@ function App() {
             {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
             <div className="chat-input">
-              <input
+              <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question or choose a P##..."
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 disabled={loading || status !== "connected"}
+                rows={2}
               />
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
                 Send
