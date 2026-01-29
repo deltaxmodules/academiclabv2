@@ -589,14 +589,14 @@ function App() {
                   rows={2}
                 />
                 <button
-                  className={expertMode ? "expert-toggle active" : "expert-toggle"}
+                  className={expertMode ? "expert-switch active" : "expert-switch"}
                   type="button"
                   onClick={() => setExpertMode((prev) => !prev)}
                   disabled={loading || status !== "connected"}
                   aria-pressed={expertMode}
-                >
-                  Expert
-                </button>
+                  aria-label="Expert mode"
+                  title="Expert mode"
+                />
               </div>
               <button onClick={handleSend} disabled={loading || status !== "connected"}>
                 Send
