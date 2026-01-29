@@ -250,10 +250,15 @@
 }
 
 .input-label {
-  width: 100%;
   font-size: 0.85rem;
   color: var(--muted);
-  margin: 0 0 6px;
+}
+
+.input-label-inline {
+  position: absolute;
+  top: -20px;
+  left: 8px;
+  pointer-events: none;
 }
 
 .chat-input textarea {
