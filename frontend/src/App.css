@@ -287,6 +287,34 @@
   margin: 6px 0 0;
 }
 
+.code-block-wrapper {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: #2f2a25;
+  color: #f7f0e6;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.outlier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.outlier-help {
+  margin: 8px 0 12px;
+  color: #5f4b37;
+}
+
 .threshold-control {
   display: grid;
   gap: 6px;

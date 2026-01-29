@@ -20,6 +20,7 @@ function App() {
   const [showDismissModal, setShowDismissModal] = useState(false);
   const [showContextModal, setShowContextModal] = useState(false);
   const [dismissReason, setDismissReason] = useState("");
+  const [showOutlierTools, setShowOutlierTools] = useState(false);
   const [contextData, setContextData] = useState({
     column: "",
     dataset_type: "",
@@ -41,6 +42,27 @@ function App() {
       (warnings || []).map((warning) => `${col}: ${warning}`)
     );
   }, [csvInfo]);
+
+  const renderMessage = (content) => {
+    const parts = content.split("```");
+    return parts.map((part, idx) => {
+      if (idx % 2 === 1) {
+        return (
+          <div key={`code-${idx}`} className="code-block-wrapper">
+            <button
+              className="copy-button"
+              type="button"
+              onClick={() => navigator.clipboard.writeText(part.trim())}
+            >
+              Copy
+            </button>
+            <pre className="code-block">{part.trim()}</pre>
+          </div>
+        );
+      }
+      return <pre key={`text-${idx}`}>{part}</pre>;
+    });
+  };
 
   const connectWebSocket = (sid) => {
     setStatus("connecting");
@@ -381,7 +403,7 @@ function App() {
                     <span>{msg.role === "user" ? "👤 You" : "🤖 Tutor"}</span>
                     {msg.action && <span className="action-tag">{msg.action}</span>}
                   </div>
-                  <pre>{msg.content}</pre>
+                  {renderMessage(msg.content)}
                 </div>
               ))}
               {loading && (
@@ -432,36 +454,53 @@ function App() {
 
             {activeProblems.includes("P03") && (
               <div className="outlier-tools">
-                <h4>Outliers controls</h4>
-                <div className="outlier-actions">
-                  <button className="accept-button" onClick={handleOpenDismiss} disabled={loading}>
-                    Mark as false alarm
+                <div className="outlier-header">
+                  <h4>Outliers controls</h4>
+                  <button
+                    className="outline-button"
+                    type="button"
+                    onClick={() => setShowOutlierTools((prev) => !prev)}
+                  >
+                    {showOutlierTools ? "Hide" : "Open"}
                   </button>
-                  <button className="outline-button" onClick={handleOpenContext} disabled={loading}>
-                    Provide domain context
-                  </button>
-                  <div className="threshold-control">
-                    <label>
-                      Sensitivity: {Number(thresholds.outlier_sensitivity || 3).toFixed(1)}
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="5"
-                      step="0.5"
-                      value={thresholds.outlier_sensitivity || 3}
-                      onChange={(e) => handleSensitivityChange(parseFloat(e.target.value))}
-                      disabled={loading}
-                    />
-                  </div>
                 </div>
-                {outlierWarnings.length > 0 && (
-                  <div className="warning-box">
-                    <strong>⚠ Context warnings:</strong>
-                    {outlierWarnings.map((warning, idx) => (
-                      <p key={`${warning}-${idx}`}>{warning}</p>
-                    ))}
-                  </div>
+                {showOutlierTools && (
+                  <>
+                    <p className="outlier-help">
+                      Use these controls if outliers look like false alarms, or if you need more or
+                      less sensitivity. Context ranges override the sensitivity slider.
+                    </p>
+                    <div className="outlier-actions">
+                      <button className="accept-button" onClick={handleOpenDismiss} disabled={loading}>
+                        Mark as false alarm
+                      </button>
+                      <button className="outline-button" onClick={handleOpenContext} disabled={loading}>
+                        Provide domain context
+                      </button>
+                      <div className="threshold-control">
+                        <label>
+                          Sensitivity: {Number(thresholds.outlier_sensitivity || 3).toFixed(1)}
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="5"
+                          step="0.5"
+                          value={thresholds.outlier_sensitivity || 3}
+                          onChange={(e) => handleSensitivityChange(parseFloat(e.target.value))}
+                          disabled={loading}
+                        />
+                      </div>
+                    </div>
+                    {outlierWarnings.length > 0 && (
+                      <div className="warning-box">
+                        <strong>⚠ Context warnings:</strong>
+                        {outlierWarnings.map((warning, idx) => (
+                          <p key={`${warning}-${idx}`}>{warning}</p>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
