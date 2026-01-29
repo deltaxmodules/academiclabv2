@@ -291,6 +291,13 @@
   position: relative;
 }
 
+.code-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c9b7a4;
+  margin-bottom: 6px;
+}
+
 .copy-button {
   position: absolute;
   top: 8px;
@@ -302,6 +309,16 @@
   border-radius: 999px;
   cursor: pointer;
   font-size: 0.8rem;
+}
+
+.copy-toast {
+  margin: 12px 0 0;
+  background: #e7f3ea;
+  color: #2f6f4e;
+  border: 1px solid #b7dbc6;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
 }
 
 .outlier-header {

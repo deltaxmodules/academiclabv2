@@ -21,6 +21,7 @@ function App() {
   const [showContextModal, setShowContextModal] = useState(false);
   const [dismissReason, setDismissReason] = useState("");
   const [showOutlierTools, setShowOutlierTools] = useState(false);
+  const [copyNotice, setCopyNotice] = useState("");
   const [contextData, setContextData] = useState({
     column: "",
     dataset_type: "",
@@ -49,10 +50,15 @@ function App() {
       if (idx % 2 === 1) {
         return (
           <div key={`code-${idx}`} className="code-block-wrapper">
+            <div className="code-label">Code</div>
             <button
               className="copy-button"
               type="button"
-              onClick={() => navigator.clipboard.writeText(part.trim())}
+              onClick={() => {
+                navigator.clipboard.writeText(part.trim());
+                setCopyNotice("Code copied to clipboard");
+                setTimeout(() => setCopyNotice(""), 2000);
+              }}
             >
               Copy
             </button>
@@ -414,6 +420,8 @@ function App() {
               )}
               <div ref={chatEndRef} />
             </div>
+
+            {copyNotice && <div className="copy-toast">{copyNotice}</div>}
 
             <div className="chat-input">
               <input

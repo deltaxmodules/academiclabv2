@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from langdetect import detect
 import re
 from datetime import datetime
 from typing import Dict, List
@@ -303,15 +304,38 @@ def expert_help_node(state: StudentState) -> StudentState:
             f"{checklist_item.get('description')}"
         )
 
-    system_prompt = """
+    last_user = next(
+        (m for m in reversed(state.get("conversation", [])) if m.get("role") == "user"),
+        None,
+    )
+    target_lang = "English"
+    if last_user and last_user.get("content"):
+        try:
+            lang = detect(last_user["content"])
+            if lang == "pt":
+                target_lang = "Portuguese"
+            elif lang == "fr":
+                target_lang = "French"
+            elif lang == "es":
+                target_lang = "Spanish"
+            elif lang == "it":
+                target_lang = "Italian"
+            elif lang == "de":
+                target_lang = "German"
+        except Exception:
+            target_lang = "English"
+
+    system_prompt = f"""
 You are a senior DATA SCIENCE SPECIALIST and teacher.
 
 RULES:
 ❌ Never execute code or claim execution
 ✅ Be technical but clear
 ✅ Provide a short Python code example (formatted)
+✅ In code blocks: only Python code and comments, no prose
 ✅ Give an expert opinion on trade-offs and when to choose each option
 ✅ Keep it concise and actionable
+✅ Respond in {target_lang}
 
 OUTPUT FORMAT:
 1) Technical diagnosis (2-4 sentences)
