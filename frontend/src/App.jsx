@@ -655,7 +655,7 @@ function App() {
                 Ask for technical help
               </button>
               <button
-                className="outline-button"
+                className="outline-button danger"
                 type="button"
                 onClick={() => setShowResetModal(true)}
                 disabled={loading}

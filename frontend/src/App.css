@@ -277,6 +277,11 @@
   border: 1px solid rgba(208, 122, 45, 0.4);
 }
 
+.outline-button.danger {
+  color: #a63d2b;
+  border-color: rgba(166, 61, 43, 0.5);
+}
+
 .outlier-tools {
   margin-top: 16px;
   background: #fff9f3;
