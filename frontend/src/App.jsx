@@ -624,6 +624,8 @@ function App() {
                   <path d="M22 3L10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
+            </div>
+            <div className="chat-actions">
               <button
                 className="outline-button"
                 type="button"

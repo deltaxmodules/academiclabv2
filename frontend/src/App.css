@@ -252,8 +252,15 @@
 .chat-input {
   margin-top: 16px;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 12px;
+}
+
+.chat-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .chat-input-field {
