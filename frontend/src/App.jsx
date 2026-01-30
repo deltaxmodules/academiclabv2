@@ -625,19 +625,19 @@ function App() {
                 </svg>
               </button>
               <button
-                className="reupload-button"
-                type="button"
-                onClick={handleOpenReupload}
-              >
-                Re-evaluate CSV
-              </button>
-              <button
                 className="outline-button"
                 type="button"
                 onClick={handleOpenNotes}
                 disabled={loading}
               >
                 Notes
+              </button>
+              <button
+                className="reupload-button"
+                type="button"
+                onClick={handleOpenReupload}
+              >
+                Re-evaluate CSV
               </button>
             </div>
 
