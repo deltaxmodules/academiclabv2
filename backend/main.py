@@ -374,9 +374,9 @@ async def set_response_style(session_id: str, payload: Dict = Body(...)):
 @app.post("/analyze-image")
 async def analyze_image(payload: Dict = Body(...)):
     """Analyze a pasted chart image and return a written summary."""
-    data_url = payload.get("image_data_url", "")
-    if not isinstance(data_url, str) or not data_url.startswith("data:image/") or "base64," not in data_url:
-        raise HTTPException(status_code=400, detail="image_data_url must be a base64 data URL")
+    base64_image = payload.get("image_base64", "")
+    if not isinstance(base64_image, str) or not base64_image.strip():
+        raise HTTPException(status_code=400, detail="image_base64 is required")
 
     prompt = (
         "You are a data science visualization expert. "
@@ -393,7 +393,10 @@ async def analyze_image(payload: Dict = Body(...)):
                     "role": "user",
                     "content": [
                         {"type": "input_text", "text": prompt},
-                        {"type": "input_image", "image_url": data_url},
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{base64_image}",
+                        },
                     ],
                 }
             ],

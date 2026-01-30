@@ -29,6 +29,7 @@ function App() {
   const [imageAnalysis, setImageAnalysis] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState("");
+  const imageModalRef = useRef(null);
 
   const statusLabel = useMemo(() => {
     if (status === "connected") return "Connected";
@@ -408,6 +409,7 @@ function App() {
     setImageAnalysis("");
     setImageError("");
     setShowImageModal(true);
+    setTimeout(() => imageModalRef.current?.focus(), 50);
   };
 
   const handlePasteImage = (event) => {
@@ -425,15 +427,23 @@ function App() {
     event.preventDefault();
   };
 
+  useEffect(() => {
+    if (!showImageModal) return;
+    const handler = (event) => handlePasteImage(event);
+    window.addEventListener("paste", handler);
+    return () => window.removeEventListener("paste", handler);
+  }, [showImageModal]);
+
   const handleAnalyzeImage = async () => {
     if (!imageDataUrl) return;
     setImageLoading(true);
     setImageError("");
     try {
+      const base64 = imageDataUrl.split(",")[1] || "";
       const response = await fetch(`${API_URL}/analyze-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_data_url: imageDataUrl }),
+        body: JSON.stringify({ image_base64: base64 }),
       });
       const data = await response.json();
       if (data.success) {
@@ -820,8 +830,8 @@ function App() {
           <div
             className="modal-card image-modal"
             onClick={(e) => e.stopPropagation()}
-            onPaste={handlePasteImage}
             tabIndex={0}
+            ref={imageModalRef}
           >
             <h3>Analyse image</h3>
             <p>Paste a chart from your clipboard (Ctrl+V / ⌘V).</p>
