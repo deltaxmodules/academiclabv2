@@ -61,6 +61,18 @@
   border: 1px solid var(--border);
 }
 
+.hero-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.hero-card-header h2 {
+  margin: 0;
+}
+
 .hero-card ul {
   padding-left: 18px;
   margin: 12px 0 0;

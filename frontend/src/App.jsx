@@ -489,7 +489,19 @@ function App() {
           </p>
         </div>
         <div className="hero-card">
-          <h2>Guided flow</h2>
+          <div className="hero-card-header">
+            <h2>Guided flow</h2>
+            {sessionId && (
+              <button
+                className="outline-button danger small"
+                type="button"
+                onClick={() => setShowResetModal(true)}
+                disabled={loading}
+              >
+                Start new session
+              </button>
+            )}
+          </div>
           <ul>
             <li>P01-P35 diagnostics</li>
             <li>Structured explanations</li>
@@ -618,14 +630,6 @@ function App() {
                 disabled={loading}
               >
                 Notes
-              </button>
-              <button
-                className="outline-button danger small"
-                type="button"
-                onClick={() => setShowResetModal(true)}
-                disabled={loading}
-              >
-                Start new session
               </button>
             </div>
 
