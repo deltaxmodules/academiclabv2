@@ -409,6 +409,16 @@
   border-color: #a63d2b !important;
 }
 
+.outline-button.info {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.outline-button.info svg {
+  width: 16px;
+  height: 16px;
+}
+
 
 .code-block-wrapper {
   position: relative;
