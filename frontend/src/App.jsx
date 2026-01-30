@@ -24,6 +24,11 @@ function App() {
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [responseStyle, setResponseStyle] = useState("fast");
   const [expertMode, setExpertMode] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState("");
+  const [imageAnalysis, setImageAnalysis] = useState("");
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState("");
 
   const statusLabel = useMemo(() => {
     if (status === "connected") return "Connected";
@@ -398,6 +403,58 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleOpenImageModal = () => {
+    setImageDataUrl("");
+    setImageAnalysis("");
+    setImageError("");
+    setShowImageModal(true);
+  };
+
+  const handlePasteImage = (event) => {
+    const items = event.clipboardData?.items || [];
+    const fileItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+    if (!fileItem) return;
+    const file = fileItem.getAsFile();
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageDataUrl(reader.result);
+      setImageError("");
+    };
+    reader.readAsDataURL(file);
+    event.preventDefault();
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!imageDataUrl) return;
+    setImageLoading(true);
+    setImageError("");
+    try {
+      const response = await fetch(`${API_URL}/analyze-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_data_url: imageDataUrl }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImageAnalysis(data.analysis || "");
+      } else {
+        setImageError(data.detail || "Failed to analyze image.");
+      }
+    } catch (err) {
+      setImageError("Failed to analyze image.");
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  const handleCopyAnalysis = () => {
+    if (!imageAnalysis) return;
+    navigator.clipboard.writeText(imageAnalysis);
+    setCopyNotice("Analysis copied to clipboard");
+    setTimeout(() => setCopyNotice(""), 2000);
+  };
+
   const handleResponseStyle = async (style) => {
     setResponseStyle(style);
     if (!sessionId) return;
@@ -641,7 +698,12 @@ function App() {
               >
                 Re-evaluate CSV
               </button>
-              <button className="outline-button info" type="button" disabled={loading}>
+              <button
+                className="outline-button info"
+                type="button"
+                disabled={loading}
+                onClick={handleOpenImageModal}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="2" />
                   <circle cx="8" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -749,6 +811,51 @@ function App() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showImageModal && (
+        <div className="modal-backdrop" onClick={() => setShowImageModal(false)}>
+          <div
+            className="modal-card image-modal"
+            onClick={(e) => e.stopPropagation()}
+            onPaste={handlePasteImage}
+            tabIndex={0}
+          >
+            <h3>Analyse image</h3>
+            <p>Paste a chart from your clipboard (Ctrl+V / ⌘V).</p>
+            <div className="image-drop">
+              {imageDataUrl ? (
+                <img src={imageDataUrl} alt="Pasted chart" />
+              ) : (
+                <span>Paste an image to preview it here.</span>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button
+                className="upload-button"
+                onClick={handleAnalyzeImage}
+                disabled={!imageDataUrl || imageLoading}
+              >
+                {imageLoading ? "Analyzing..." : "Analyze"}
+              </button>
+              <button className="ghost" onClick={() => setShowImageModal(false)}>
+                Close
+              </button>
+            </div>
+            {imageError && <p className="error-text">{imageError}</p>}
+            {imageAnalysis && (
+              <div className="analysis-box">
+                <div className="analysis-header">
+                  <span>Analysis</span>
+                  <button className="ghost" onClick={handleCopyAnalysis}>
+                    Copy
+                  </button>
+                </div>
+                <pre>{imageAnalysis}</pre>
+              </div>
+            )}
           </div>
         </div>
       )}

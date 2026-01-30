@@ -421,6 +421,50 @@
   height: 16px;
 }
 
+.image-modal {
+  max-width: 680px;
+}
+
+.image-drop {
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  background: #fbf8f3;
+  margin: 12px 0;
+}
+
+.image-drop img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.analysis-box {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: #f7f2e8;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.analysis-box pre {
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.error-text {
+  color: #9b2c2c;
+  margin-top: 8px;
+}
+
 
 .code-block-wrapper {
   position: relative;

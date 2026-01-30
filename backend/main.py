@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import Body, FastAPI, File, HTTPException, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from openai import OpenAI
 
 from graph import AGENT_GRAPH
 from state import StudentState, create_initial_state
@@ -28,6 +29,7 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("academiclab")
 
 app = FastAPI(title="Academic Lab - Data Prep Tutor (LangGraph)")
+openai_client = OpenAI()
 
 cors_origins = os.getenv(
     "CORS_ORIGINS",
@@ -367,6 +369,39 @@ async def set_response_style(session_id: str, payload: Dict = Body(...)):
     return _sanitize_for_json(
         {"success": True, "response_style": style}
     )
+
+
+@app.post("/analyze-image")
+async def analyze_image(payload: Dict = Body(...)):
+    """Analyze a pasted chart image and return a written summary."""
+    data_url = payload.get("image_data_url", "")
+    if not isinstance(data_url, str) or not data_url.startswith("data:image/") or "base64," not in data_url:
+        raise HTTPException(status_code=400, detail="image_data_url must be a base64 data URL")
+
+    prompt = (
+        "You are a data science visualization expert. "
+        "Analyze the chart succinctly. Include: chart type, axes/labels, main trends, "
+        "notable anomalies, and one suggested next check. "
+        "Respond in plain text."
+    )
+
+    try:
+        response = openai_client.responses.create(
+            model="gpt-4.1-mini",
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": data_url},
+                    ],
+                }
+            ],
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return {"success": True, "analysis": response.output_text}
 
 
 
