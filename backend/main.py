@@ -386,15 +386,15 @@ async def analyze_image(payload: Dict = Body(...)):
     )
 
     try:
-        response = openai_client.responses.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4.1-mini",
-            input=[
+            messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "input_text", "text": prompt},
+                        {"type": "text", "text": prompt},
                         {
-                            "type": "input_image",
+                            "type": "image_url",
                             "image_url": f"data:image/jpeg;base64,{base64_image}",
                         },
                     ],
@@ -404,7 +404,8 @@ async def analyze_image(payload: Dict = Body(...)):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    return {"success": True, "analysis": response.output_text}
+    content = response.choices[0].message.content if response.choices else ""
+    return {"success": True, "analysis": content}
 
 
 
