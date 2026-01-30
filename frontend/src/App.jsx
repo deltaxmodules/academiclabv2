@@ -613,8 +613,16 @@ function App() {
                   title="Expert mode"
                 />
               </div>
-              <button onClick={handleSend} disabled={loading || status !== "connected"}>
-                Send
+              <button
+                className="send-button"
+                onClick={handleSend}
+                disabled={loading || status !== "connected"}
+                aria-label="Send message"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12L22 3l-6 18-4.5-6L2 12z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  <path d="M22 3L10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
               </button>
               <button
                 className="reupload-button"

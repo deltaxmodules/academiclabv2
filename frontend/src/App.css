@@ -330,6 +330,20 @@
   cursor: pointer;
 }
 
+.send-button {
+  padding: 12px;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-button svg {
+  width: 20px;
+  height: 20px;
+}
+
 .chat-input button:disabled,
 .chat-input textarea:disabled {
   opacity: 0.6;
