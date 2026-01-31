@@ -299,6 +299,7 @@ async def upload_csv(file: UploadFile = File(...)):
             for p in state["problems_detected"]
         ],
         "active_problems": _active_problem_ids(state),
+        "problems_resolved": state.get("problems_resolved", {}),
         "message": state["last_response"],
     }
     return _sanitize_for_json(response)
@@ -377,6 +378,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
             for p in state["problems_detected"]
         ],
         "active_problems": _active_problem_ids(state),
+        "problems_resolved": state.get("problems_resolved", {}),
         "message": state["last_response"],
     }
     return _sanitize_for_json(response)

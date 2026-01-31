@@ -103,6 +103,8 @@ def analyze_csv_node(state: StudentState) -> StudentState:
     state["last_action"] = "analyze"
     state["timestamp_last_update"] = _now()
 
+    _mark_resolved_by_feature_engineering(state)
+
     return state
 
 
@@ -128,6 +130,41 @@ def _build_chk001_report(stats: Dict) -> Dict:
         )
 
     return report
+
+
+def _mark_resolved_by_feature_engineering(state: StudentState) -> None:
+    """Auto-resolve missing-value issues when a derived presence flag exists."""
+    problems = state.get("problems_detected", [])
+    if not problems:
+        return
+
+    columns = set(state.get("csv_stats", {}).get("column_names", []))
+    if not columns:
+        return
+
+    resolved = state.setdefault("problems_resolved", {})
+
+    for problem in problems:
+        if problem.get("problem_id") != "P01":
+            continue
+        column = problem.get("column")
+        if not column:
+            continue
+
+        derived_candidates = {
+            f"{column}_present",
+            f"{column}_missing",
+            f"{column}_flag",
+            f"has_{column}",
+        }
+        if derived_candidates & columns:
+            if problem["problem_id"] not in state.get("problems_solved", []):
+                state["problems_solved"].append(problem["problem_id"])
+            resolved[problem["problem_id"]] = {
+                "status": "resolved_by_feature_engineering",
+                "note": f"Derived column exists for {column}.",
+                "column": column,
+            }
 
 
 def show_problems_node(state: StudentState) -> StudentState:
