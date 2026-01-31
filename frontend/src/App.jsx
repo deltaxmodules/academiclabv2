@@ -816,7 +816,7 @@ function App() {
                 onClick={handleOpenResolve}
                 disabled={loading}
               >
-                Mark resolved
+                {currentProblemId ? `Mark resolved ${currentProblemId}` : "Mark resolved"}
               </button>
               <button
                 className="reupload-button"
