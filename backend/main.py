@@ -290,6 +290,7 @@ async def upload_csv(file: UploadFile = File(...)):
         "csv_version": 1,
         "dataset_info": stats,
         "dataset_overview": overview,
+        "current_problem": state.get("current_problem"),
         "problems_detected": [
             {
                 "id": p["problem_id"],
@@ -369,6 +370,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
         "csv_version": new_version,
         "dataset_info": stats,
         "dataset_overview": overview,
+        "current_problem": state.get("current_problem"),
         "problems_detected": [
             {
                 "id": p["problem_id"],

@@ -12,6 +12,7 @@ function App() {
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [resolveAction, setResolveAction] = useState("keep");
   const [resolveNote, setResolveNote] = useState("");
+  const [currentProblemId, setCurrentProblemId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle");
@@ -280,6 +281,7 @@ function App() {
         });
         setDatasetOverview(data.dataset_overview || null);
         setResolvedByFe(data.problems_resolved || {});
+        setCurrentProblemId(data.current_problem || null);
         setMessages((prev) => {
           const next = sessionId ? [...prev] : [];
           const action = sessionId ? "reupload" : "analyze";
@@ -336,12 +338,17 @@ function App() {
 
   const handleResolveProblem = async () => {
     if (!sessionId) return;
-    const problemId = messages.findLast?.((msg) => msg.action === "explain")?.content?.match(/\bP\d{2}\b/)?.[0]
+    const problemId = currentProblemId
+      || messages.findLast?.((msg) => msg.action === "explain")?.content?.match(/\bP\d{2}\b/)?.[0]
       || messages.findLast?.((msg) => msg.action === "analyze")?.content?.match(/\bP\d{2}\b/)?.[0]
       || null;
 
     if (!problemId) {
       setShowResolveModal(false);
+      return;
+    }
+
+    if (!resolveNote.trim()) {
       return;
     }
 
@@ -355,6 +362,7 @@ function App() {
       const data = await response.json();
       if (data.success) {
         setResolvedByFe(data.problems_resolved || {});
+        setCurrentProblemId(data.current_problem || null);
         setMessages((prev) => [
           ...prev,
           {
@@ -543,6 +551,7 @@ function App() {
         setCsvInfo(null);
         setDatasetOverview(null);
         setResolvedByFe({});
+        setCurrentProblemId(null);
         setMessages([
           {
             id: `${Date.now()}-reset`,
@@ -881,6 +890,9 @@ function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Resolve this issue</h3>
             <p>Select the action you took and add a short note.</p>
+            {currentProblemId && (
+              <p><strong>Current problem:</strong> {currentProblemId}</p>
+            )}
             <label>
               Action
               <select value={resolveAction} onChange={(e) => setResolveAction(e.target.value)}>
@@ -902,7 +914,7 @@ function App() {
               />
             </label>
             <div className="modal-actions">
-              <button className="upload-button" onClick={handleResolveProblem} disabled={loading}>
+              <button className="upload-button" onClick={handleResolveProblem} disabled={loading || !resolveNote.trim()}>
                 Save resolution
               </button>
               <button className="ghost" onClick={() => setShowResolveModal(false)}>
