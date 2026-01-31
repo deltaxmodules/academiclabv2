@@ -12,6 +12,30 @@ from typing import List, Dict
 from datetime import datetime
 
 # ============================================================================
+# HELPERS
+# ============================================================================
+
+def _is_derived_column(column: str) -> bool:
+    """Heuristic to ignore derived columns created during cleaning."""
+    col = (column or "").lower()
+    derived_suffixes = (
+        "_winsorized",
+        "_log",
+        "_scaled",
+        "_normalized",
+        "_imputed",
+        "_missing",
+        "_present",
+        "_flag",
+        "_clip",
+        "_capped",
+        "_bin",
+    )
+    if col.startswith("has_"):
+        return True
+    return col.endswith(derived_suffixes)
+
+# ============================================================================
 # CLASS: DIAGNOSE PROBLEMS
 # ============================================================================
 
@@ -73,6 +97,8 @@ class DataPreparationDiagnostics:
         """P03: Detect outliers with IQR."""
         numeric_cols = self.df.select_dtypes(include=[np.number]).columns
         for col in numeric_cols:
+            if _is_derived_column(col):
+                continue
             Q1 = self.df[col].quantile(0.25)
             Q3 = self.df[col].quantile(0.75)
             IQR = Q3 - Q1
@@ -248,6 +274,7 @@ class QuickAnalyzer:
         missing_types = stats.get("missing_types", {}) or {}
         duplicates = stats.get("duplicates", 0) or 0
         outliers = stats.get("outliers", {}) or {}
+        outliers = {col: info for col, info in outliers.items() if not _is_derived_column(col)}
         high_corr = stats.get("high_correlations", []) or []
         target_dist = stats.get("target_distribution", {}) or {}
         target_col = stats.get("target_column", "")
