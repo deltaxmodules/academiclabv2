@@ -137,6 +137,59 @@ def _compute_stats(df: pd.DataFrame) -> Dict:
     return _sanitize_for_json(stats)
 
 
+def _compute_overview(df: pd.DataFrame) -> Dict:
+    """Compute a comprehensive dataset overview for pre-analysis context."""
+    rows = len(df)
+    cols = len(df.columns)
+    dtypes = df.dtypes.astype(str).to_dict()
+    memory_mb = round(df.memory_usage(deep=True).sum() / 1024**2, 2)
+    missing_by_col = (df.isnull().sum() / max(rows, 1) * 100).round(2).to_dict()
+    missing_total_pct = round((df.isnull().sum().sum() / max(rows * max(cols, 1), 1)) * 100, 2)
+    duplicates = int(df.duplicated().sum()) if rows else 0
+
+    type_summary = {
+        "numeric": int(len(df.select_dtypes(include=["number"]).columns)),
+        "categorical": int(len(df.select_dtypes(include=["object", "category"]).columns)),
+        "datetime": int(len(df.select_dtypes(include=["datetime64"]).columns)),
+        "boolean": int(len(df.select_dtypes(include=["bool"]).columns)),
+    }
+
+    numeric_summary = {}
+    for col in df.select_dtypes(include=["number"]).columns:
+        series = df[col].dropna()
+        if series.empty:
+            continue
+        numeric_summary[col] = {
+            "min": float(series.min()),
+            "max": float(series.max()),
+            "mean": float(series.mean()),
+            "std": float(series.std()),
+            "skew": float(series.skew()) if series.size > 2 else 0.0,
+        }
+
+    categorical_summary = {}
+    for col in df.select_dtypes(include=["object", "category"]).columns:
+        counts = df[col].value_counts(dropna=False).head(3).to_dict()
+        categorical_summary[col] = {
+            "unique_count": int(df[col].nunique(dropna=False)),
+            "top_values": counts,
+        }
+
+    overview = {
+        "rows": rows,
+        "columns": cols,
+        "memory_mb": memory_mb,
+        "dtypes": dtypes,
+        "type_summary": type_summary,
+        "missing_total_pct": missing_total_pct,
+        "missing_by_column": missing_by_col,
+        "duplicates": duplicates,
+        "numeric_summary": numeric_summary,
+        "categorical_summary": categorical_summary,
+    }
+    return _sanitize_for_json(overview)
+
+
 def _sanitize_for_json(payload: Dict) -> Dict:
     """Replace NaN/inf values to keep JSON encoding safe."""
     def clean(value):
@@ -215,6 +268,7 @@ async def upload_csv(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Invalid CSV: {exc}") from exc
 
     stats = _compute_stats(df)
+    overview = _compute_overview(df)
     session_id = f"session_{uuid.uuid4().hex}"
 
     state = create_initial_state(
@@ -235,6 +289,7 @@ async def upload_csv(file: UploadFile = File(...)):
         "filename": file.filename,
         "csv_version": 1,
         "dataset_info": stats,
+        "dataset_overview": overview,
         "problems_detected": [
             {
                 "id": p["problem_id"],
@@ -267,6 +322,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     old_state = STUDENT_SESSIONS[session_id]
     before_state = old_state.copy()
     stats = _compute_stats(df)
+    overview = _compute_overview(df)
     new_version = old_state.get("csv_version", 1) + 1
 
     old_state["csv_filename"] = file.filename
@@ -311,6 +367,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
         "filename": file.filename,
         "csv_version": new_version,
         "dataset_info": stats,
+        "dataset_overview": overview,
         "problems_detected": [
             {
                 "id": p["problem_id"],

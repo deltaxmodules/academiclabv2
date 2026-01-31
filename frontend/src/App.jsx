@@ -7,6 +7,7 @@ const WS_URL = API_URL.replace("http", "ws");
 function App() {
   const [sessionId, setSessionId] = useState(null);
   const [csvInfo, setCsvInfo] = useState(null);
+  const [datasetOverview, setDatasetOverview] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle");
@@ -273,6 +274,7 @@ function App() {
           ...data.dataset_info,
           csv_version: data.csv_version || 1,
         });
+        setDatasetOverview(data.dataset_overview || null);
         setMessages((prev) => {
           const next = sessionId ? [...prev] : [];
           const action = sessionId ? "reupload" : "analyze";
@@ -490,6 +492,7 @@ function App() {
       if (data.success) {
         setSessionId(data.session_id);
         setCsvInfo(null);
+        setDatasetOverview(null);
         setMessages([
           {
             id: `${Date.now()}-reset`,
@@ -629,6 +632,39 @@ function App() {
                 </div>
               )}
             </div>
+            {datasetOverview && (
+              <details className="overview-panel">
+                <summary>Dataset overview</summary>
+                <div className="overview-grid">
+                  <div>
+                    <h4>Structure</h4>
+                    <pre>{JSON.stringify({
+                      rows: datasetOverview.rows,
+                      columns: datasetOverview.columns,
+                      memory_mb: datasetOverview.memory_mb,
+                      duplicates: datasetOverview.duplicates,
+                      missing_total_pct: datasetOverview.missing_total_pct,
+                    }, null, 2)}</pre>
+                  </div>
+                  <div>
+                    <h4>Type summary</h4>
+                    <pre>{JSON.stringify(datasetOverview.type_summary, null, 2)}</pre>
+                  </div>
+                  <div>
+                    <h4>Top missing columns</h4>
+                    <pre>{JSON.stringify(datasetOverview.missing_by_column, null, 2)}</pre>
+                  </div>
+                  <div>
+                    <h4>Numeric summary</h4>
+                    <pre>{JSON.stringify(datasetOverview.numeric_summary, null, 2)}</pre>
+                  </div>
+                  <div>
+                    <h4>Categorical summary</h4>
+                    <pre>{JSON.stringify(datasetOverview.categorical_summary, null, 2)}</pre>
+                  </div>
+                </div>
+              </details>
+            )}
             <div className="chat-body">
               {messages.map((msg) => (
                 <div
