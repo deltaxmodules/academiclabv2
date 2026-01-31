@@ -410,6 +410,49 @@ async def reset_session(session_id: str):
     )
 
 
+@app.post("/session/{session_id}/resolve")
+async def resolve_problem(session_id: str, payload: Dict = Body(...)):
+    """Mark a problem as resolved with a user decision."""
+    if session_id not in STUDENT_SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    problem_id = (payload.get("problem_id") or "").strip().upper()
+    action = (payload.get("action") or "other").strip()
+    note = (payload.get("note") or "").strip()
+
+    state = STUDENT_SESSIONS[session_id]
+    available = {p.get("problem_id") for p in state.get("problems_detected", [])}
+    if problem_id not in available:
+        raise HTTPException(status_code=400, detail="Problem not found in session")
+
+    if problem_id not in state.get("problems_solved", []):
+        state["problems_solved"].append(problem_id)
+
+    resolved = state.setdefault("problems_resolved", {})
+    resolved[problem_id] = {
+        "status": "resolved_by_user",
+        "action": action,
+        "note": note or "Marked as resolved by user decision.",
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    next_problem = _next_unsolved_problem(state)
+    state["current_problem"] = next_problem
+    state["timestamp_last_update"] = datetime.now()
+
+    STUDENT_SESSIONS[session_id] = state
+
+    return _sanitize_for_json(
+        {
+            "success": True,
+            "problem_id": problem_id,
+            "current_problem": next_problem,
+            "active_problems": _active_problem_ids(state),
+            "problems_resolved": state.get("problems_resolved", {}),
+        }
+    )
+
+
 @app.post("/session/{session_id}/response-style")
 async def set_response_style(session_id: str, payload: Dict = Body(...)):
     """Set response style: fast or detailed."""

@@ -9,6 +9,9 @@ function App() {
   const [csvInfo, setCsvInfo] = useState(null);
   const [datasetOverview, setDatasetOverview] = useState(null);
   const [resolvedByFe, setResolvedByFe] = useState({});
+  const [showResolveModal, setShowResolveModal] = useState(false);
+  const [resolveAction, setResolveAction] = useState("keep");
+  const [resolveNote, setResolveNote] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle");
@@ -325,6 +328,50 @@ function App() {
 
   const handleOpenReupload = () => {
     setShowReuploadModal(true);
+  };
+
+  const handleOpenResolve = () => {
+    setShowResolveModal(true);
+  };
+
+  const handleResolveProblem = async () => {
+    if (!sessionId) return;
+    const problemId = messages.findLast?.((msg) => msg.action === "explain")?.content?.match(/\bP\d{2}\b/)?.[0]
+      || messages.findLast?.((msg) => msg.action === "analyze")?.content?.match(/\bP\d{2}\b/)?.[0]
+      || null;
+
+    if (!problemId) {
+      setShowResolveModal(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/session/${sessionId}/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problem_id: problemId, action: resolveAction, note: resolveNote }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setResolvedByFe(data.problems_resolved || {});
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-resolve`,
+            role: "assistant",
+            content: `Resolved ${problemId} (${resolveAction}).`,
+            action: "resolved",
+          },
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setShowResolveModal(false);
+      setResolveNote("");
+      setLoading(false);
+    }
   };
 
   const handleOpenNotes = () => {
@@ -755,6 +802,14 @@ function App() {
                 Notes
               </button>
               <button
+                className="outline-button"
+                type="button"
+                onClick={handleOpenResolve}
+                disabled={loading}
+              >
+                Mark resolved
+              </button>
+              <button
                 className="reupload-button"
                 type="button"
                 onClick={handleOpenReupload}
@@ -814,6 +869,43 @@ function App() {
                 Reset session
               </button>
               <button className="ghost" onClick={() => setShowResetModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResolveModal && sessionId && (
+        <div className="modal-backdrop" onClick={() => setShowResolveModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Resolve this issue</h3>
+            <p>Select the action you took and add a short note.</p>
+            <label>
+              Action
+              <select value={resolveAction} onChange={(e) => setResolveAction(e.target.value)}>
+                <option value="remove">Remove</option>
+                <option value="cap">Cap / Winsorize</option>
+                <option value="keep">Keep (valid outliers)</option>
+                <option value="impute">Impute</option>
+                <option value="flag">Flag / Indicator</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Note
+              <textarea
+                value={resolveNote}
+                onChange={(e) => setResolveNote(e.target.value)}
+                placeholder="Explain briefly what you did"
+                rows={3}
+              />
+            </label>
+            <div className="modal-actions">
+              <button className="upload-button" onClick={handleResolveProblem} disabled={loading}>
+                Save resolution
+              </button>
+              <button className="ghost" onClick={() => setShowResolveModal(false)}>
                 Cancel
               </button>
             </div>
