@@ -21,6 +21,7 @@ from openai import OpenAI
 from graph import AGENT_GRAPH
 from state import StudentState, create_initial_state
 from nodes import translate_message
+from profiler import DataProfiler
 
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
@@ -217,12 +218,15 @@ async def upload_csv(file: UploadFile = File(...)):
     stats = _compute_stats(df)
     session_id = f"session_{uuid.uuid4().hex}"
 
+    profile = DataProfiler(df).run_full_profile()
+
     state = create_initial_state(
         student_id="default_user",
         session_id=session_id,
         csv_filename=file.filename,
         csv_stats=stats,
     )
+    state["dataset_profile"] = profile
     state["csv_version"] = 1
     state["last_action"] = "upload"
 
@@ -235,6 +239,7 @@ async def upload_csv(file: UploadFile = File(...)):
         "filename": file.filename,
         "csv_version": 1,
         "dataset_info": stats,
+        "dataset_profile": state.get("dataset_profile", {}),
         "problems_detected": [
             {
                 "id": p["problem_id"],
@@ -272,6 +277,7 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     old_state["csv_filename"] = file.filename
     old_state["csv_stats"] = stats
     old_state["csv_version"] = new_version
+    old_state["dataset_profile"] = profile
     old_state["problems_detected"] = []
     old_state["current_problem"] = None
     old_state["problems_solved"] = []
@@ -540,3 +546,4 @@ def _compare_problem_sets(old: StudentState, new: StudentState) -> Dict[str, set
         "remaining": after,
         "new": after - before,
     }
+    profile = DataProfiler(df).run_full_profile()

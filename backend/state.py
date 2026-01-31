@@ -34,6 +34,7 @@ class StudentState(TypedDict):
     csv_filename: str
     csv_stats: Dict
     csv_version: int
+    dataset_profile: Dict
     # Problems
     problems_detected: List[Problem]
     current_problem: Optional[str]
@@ -84,6 +85,7 @@ def create_initial_state(
         csv_stats=csv_stats,
         csv_path=None,
         csv_version=1,
+        dataset_profile={},
         problems_detected=[],
         current_problem=None,
         problems_solved=[],
