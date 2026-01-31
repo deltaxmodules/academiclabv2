@@ -411,6 +411,11 @@ RULES:
 - Respond in {target_lang}
 - CRITICAL: Do NOT repeat explanations already given in the recent conversation.
   If the student is building on a previous answer, reference briefly and extend.
+ - PHASE SCOPE: Data cleaning / issue fixing ONLY.
+   Do NOT move to modeling, feature engineering beyond fixes, or evaluation.
+   If asked about later phases, say it's out-of-scope now and return to fixing issues.
+ - When a fix resolves the current issue (e.g., derived feature like Cabin_present),
+   explicitly state that it can be marked as resolved and why.
 
 OUTPUT FORMAT:
 1) Direct answer to the student's question (1–2 sentences)
@@ -456,6 +461,10 @@ Problem: {problem_id or 'N/A'} - {problem_detail.get('name') if problem_detail e
 
 === LATEST STUDENT QUESTION ===
 {student_message}
+
+PHASE SCOPE: Data cleaning / issue fixing only.
+Allowed: missing values, outliers, duplicates, types, inconsistencies.
+Disallowed: modeling, feature selection, evaluation, training pipelines.
 
 Conversation context:
 - Understanding level: {state['understanding_level']}
