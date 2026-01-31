@@ -254,6 +254,22 @@
   border: 1px solid #7aa2e6;
 }
 
+.bubble.assistant.resolved {
+  border: 1px solid #cfe7d9;
+  background: #f3fbf6;
+}
+
+.bubble.assistant.resolved ul {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+  color: #4b3f34;
+  font-size: 0.9rem;
+}
+
+.bubble.assistant.resolved strong {
+  color: #2f6f4e;
+}
+
 .bubble-header {
   display: flex;
   justify-content: space-between;

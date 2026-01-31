@@ -8,6 +8,7 @@ function App() {
   const [sessionId, setSessionId] = useState(null);
   const [csvInfo, setCsvInfo] = useState(null);
   const [datasetOverview, setDatasetOverview] = useState(null);
+  const [resolvedByFe, setResolvedByFe] = useState({});
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle");
@@ -275,6 +276,7 @@ function App() {
           csv_version: data.csv_version || 1,
         });
         setDatasetOverview(data.dataset_overview || null);
+        setResolvedByFe(data.problems_resolved || {});
         setMessages((prev) => {
           const next = sessionId ? [...prev] : [];
           const action = sessionId ? "reupload" : "analyze";
@@ -493,6 +495,7 @@ function App() {
         setSessionId(data.session_id);
         setCsvInfo(null);
         setDatasetOverview(null);
+        setResolvedByFe({});
         setMessages([
           {
             id: `${Date.now()}-reset`,
@@ -681,6 +684,20 @@ function App() {
                   {renderMessage(msg.content)}
                 </div>
               ))}
+              {resolvedByFe && Object.keys(resolvedByFe).length > 0 && (
+                <div className="bubble assistant resolved">
+                  <div className="bubble-header">
+                    <Icon name="check" /> Resolved by feature engineering
+                  </div>
+                  <ul>
+                    {Object.entries(resolvedByFe).map(([pid, info]) => (
+                      <li key={pid}>
+                        <strong>{pid}</strong>: {info.note || "Handled via derived feature."}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {loading && (
                 <div className="bubble assistant">
                   <div className="bubble-header">
