@@ -13,6 +13,8 @@ function App() {
   const [resolveAction, setResolveAction] = useState("keep");
   const [resolveNote, setResolveNote] = useState("");
   const [currentProblemId, setCurrentProblemId] = useState(null);
+  const [activeProblems, setActiveProblems] = useState([]);
+  const [resolveProblemId, setResolveProblemId] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle");
@@ -282,6 +284,8 @@ function App() {
         setDatasetOverview(data.dataset_overview || null);
         setResolvedByFe(data.problems_resolved || {});
         setCurrentProblemId(data.current_problem || null);
+        setActiveProblems(data.active_problems || []);
+        setResolveProblemId("");
         setMessages((prev) => {
           const next = sessionId ? [...prev] : [];
           const action = sessionId ? "reupload" : "analyze";
@@ -338,7 +342,8 @@ function App() {
 
   const handleResolveProblem = async () => {
     if (!sessionId) return;
-    const problemId = currentProblemId
+    const problemId = resolveProblemId
+      || currentProblemId
       || messages.findLast?.((msg) => msg.action === "explain")?.content?.match(/\bP\d{2}\b/)?.[0]
       || messages.findLast?.((msg) => msg.action === "analyze")?.content?.match(/\bP\d{2}\b/)?.[0]
       || null;
@@ -363,6 +368,8 @@ function App() {
       if (data.success) {
         setResolvedByFe(data.problems_resolved || {});
         setCurrentProblemId(data.current_problem || null);
+        setActiveProblems(data.active_problems || []);
+        setResolveProblemId("");
         setMessages((prev) => [
           ...prev,
           {
@@ -552,6 +559,8 @@ function App() {
         setDatasetOverview(null);
         setResolvedByFe({});
         setCurrentProblemId(null);
+        setActiveProblems([]);
+        setResolveProblemId("");
         setMessages([
           {
             id: `${Date.now()}-reset`,
@@ -890,7 +899,20 @@ function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Resolve this issue</h3>
             <p>Select the action you took and add a short note.</p>
-            {currentProblemId && (
+            {activeProblems.length > 0 && (
+              <label>
+                Problem
+                <select value={resolveProblemId} onChange={(e) => setResolveProblemId(e.target.value)}>
+                  <option value="">Select a problem</option>
+                  {activeProblems.map((pid) => (
+                    <option key={pid} value={pid}>
+                      {pid}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {!activeProblems.length && currentProblemId && (
               <p><strong>Current problem:</strong> {currentProblemId}</p>
             )}
             <label>
