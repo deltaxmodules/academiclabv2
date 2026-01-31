@@ -22,6 +22,7 @@ from graph import AGENT_GRAPH
 from state import StudentState, create_initial_state
 from nodes import translate_message
 from profiler import DataProfiler
+from graph_router import get_nodes_for_analysis
 
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
@@ -233,6 +234,7 @@ async def upload_csv(file: UploadFile = File(...)):
     state = AGENT_GRAPH.invoke(state)
     STUDENT_SESSIONS[session_id] = state
 
+    analysis_type = state.get("dataset_profile", {}).get("analysis_type", {})
     response = {
         "success": True,
         "session_id": session_id,
@@ -240,6 +242,8 @@ async def upload_csv(file: UploadFile = File(...)):
         "csv_version": 1,
         "dataset_info": stats,
         "dataset_profile": state.get("dataset_profile", {}),
+        "analysis_type": analysis_type,
+        "nodes_executed": get_nodes_for_analysis(analysis_type),
         "problems_detected": [
             {
                 "id": p["problem_id"],
@@ -311,12 +315,15 @@ async def reupload_csv(session_id: str, file: UploadFile = File(...)):
     else:
         state["last_response"] = summary.strip()
 
+    analysis_type = state.get("dataset_profile", {}).get("analysis_type", {})
     response = {
         "success": True,
         "session_id": session_id,
         "filename": file.filename,
         "csv_version": new_version,
         "dataset_info": stats,
+        "analysis_type": analysis_type,
+        "nodes_executed": get_nodes_for_analysis(analysis_type),
         "problems_detected": [
             {
                 "id": p["problem_id"],
